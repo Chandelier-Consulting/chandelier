@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chandelier — Logo System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Hanken+Grotesk:wght@300..700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --black: oklch(0.13 0.010 285);
+  --black-2: oklch(0.16 0.012 285);
+  --black-3: oklch(0.19 0.014 285);
+  --line: oklch(0.30 0.015 285);
+  --white: oklch(0.97 0.004 90);
+  --muted: oklch(0.78 0.010 90);
+  --faint: oklch(0.60 0.012 285);
+  --gold: oklch(0.84 0.130 88);
+  --gold-soft: oklch(0.88 0.090 88);
+  --amber: oklch(0.78 0.140 70);
+  --violet: oklch(0.64 0.180 285);
+  --display:"Bodoni Moda",Georgia,serif;
+  --sans:"Hanken Grotesk",system-ui,sans-serif;
+  --mono:"Space Mono",ui-monospace,monospace;
+  --gutter: clamp(20px,5vw,64px);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--white);font-family:var(--sans);font-weight:350;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.04;mix-blend-mode:screen;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+::selection{background:var(--gold);color:var(--black);}
+
+.wrap{max-width:1240px;margin:0 auto;padding-inline:var(--gutter);}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);font-weight:400;display:inline-flex;align-items:center;gap:12px;}
+.kicker::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));}
+
+/* hero */
+.page-head{padding:clamp(70px,12vh,130px) 0 50px;border-bottom:1px solid var(--line);position:relative;overflow:hidden;}
+.page-head .glow{position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:60vw;height:60vw;max-width:680px;max-height:680px;border-radius:50%;background:radial-gradient(circle,oklch(0.82 0.13 88 / 0.16),transparent 65%);filter:blur(70px);pointer-events:none;}
+.page-head h1{font-family:var(--display);font-weight:600;font-size:clamp(40px,6vw,76px);line-height:1.0;letter-spacing:-0.01em;margin:22px 0 18px;position:relative;}
+.page-head h1 em{font-style:italic;color:var(--gold);}
+.page-head p{color:var(--muted);max-width:54ch;font-size:18px;position:relative;}
+
+section{padding-block:clamp(56px,9vh,104px);border-bottom:1px solid var(--line);}
+.sec-label{display:flex;align-items:baseline;gap:18px;margin-bottom:48px;flex-wrap:wrap;}
+.sec-label h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,3.4vw,40px);letter-spacing:-0.01em;}
+.sec-label .n{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:0.2em;}
+.sec-label .desc{color:var(--muted);font-size:15.5px;margin-left:auto;max-width:40ch;}
+
+/* direction grid */
+.dirs{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;}
+.dir{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,oklch(0.17 0.013 285 / 0.5),transparent);transition:border-color .5s,transform .5s;}
+.dir:hover{border-color:oklch(0.50 0.08 88 / 0.5);transform:translateY(-4px);}
+.dir .stage{aspect-ratio:16/11;display:grid;place-items:center;position:relative;background:radial-gradient(120% 90% at 50% 30%,oklch(0.18 0.014 285),oklch(0.12 0.01 285));}
+.dir .stage::after{content:"";position:absolute;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle,oklch(0.82 0.13 88 / 0.12),transparent 68%);filter:blur(28px);}
+.dir svg{position:relative;z-index:1;}
+.dir .meta{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:20px 24px 24px;border-top:1px solid var(--line);}
+.dir .meta h3{font-family:var(--display);font-size:22px;font-weight:600;}
+.dir .meta .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);}
+.dir .meta p{color:var(--muted);font-size:14px;margin-top:4px;line-height:1.5;}
+.dir .pick{position:absolute;top:16px;right:16px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:100px;padding:6px 12px;background:oklch(0.11 0.01 285 / 0.6);backdrop-filter:blur(6px);}
+.dir.feat .pick{color:var(--black);background:var(--gold);border-color:var(--gold);}
+
+/* lockups */
+.lockups{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;}
+.lock{border:1px solid var(--line);border-radius:18px;padding:46px;display:grid;place-items:center;min-height:200px;position:relative;background:linear-gradient(180deg,oklch(0.16 0.012 285 / 0.6),transparent);}
+.lock .cap{position:absolute;top:16px;left:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);}
+.lock.stack{grid-row:span 2;}
+
+/* horizontal lockup */
+.lk-h{display:flex;align-items:center;gap:20px;}
+.lk-h .name{font-family:var(--display);font-weight:600;font-size:42px;letter-spacing:0.01em;line-height:1;}
+.lk-h .name b{color:var(--gold);font-weight:600;}
+.lk-h .sub{display:block;font-family:var(--mono);font-size:10px;letter-spacing:0.34em;text-transform:uppercase;color:var(--faint);margin-top:9px;font-weight:400;}
+.divider{width:1px;height:54px;background:var(--line);}
+
+/* stacked lockup */
+.lk-s{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;}
+.lk-s .name{font-family:var(--display);font-weight:600;font-size:34px;letter-spacing:0.02em;}
+.lk-s .name b{color:var(--gold);}
+.lk-s .sub{font-family:var(--mono);font-size:9.5px;letter-spacing:0.32em;text-transform:uppercase;color:var(--faint);}
+
+/* variants row */
+.variants{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+.variant{border:1px solid var(--line);border-radius:16px;padding:36px 20px 22px;display:flex;flex-direction:column;align-items:center;gap:22px;min-height:190px;justify-content:center;position:relative;}
+.variant .cap{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);}
+.variant.light{background:var(--white);border-color:transparent;}
+.variant.gold-bg{background:linear-gradient(140deg,var(--gold),var(--amber));border-color:transparent;}
+.variant.gold-bg .cap,.variant.light .cap{color:oklch(0.40 0.02 285);}
+
+/* favicon */
+.favs{display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap;}
+.fav{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.fav .box{border-radius:22%;display:grid;place-items:center;background:var(--black-2);border:1px solid var(--line);overflow:hidden;}
+.fav .box.tinted{background:linear-gradient(140deg,oklch(0.20 0.02 285),oklch(0.14 0.012 285));}
+.fav span{font-family:var(--mono);font-size:11px;color:var(--faint);}
+.fav .box.b64{width:64px;height:64px;}
+.fav .box.b32{width:32px;height:32px;}
+.fav .box.b16{width:16px;height:16px;}
+
+/* usage on real chrome */
+.chrome{border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.chrome .bar{display:flex;align-items:center;gap:10px;padding:13px 18px;background:oklch(0.13 0.01 285 / 0.8);border-bottom:1px solid var(--line);}
+.chrome .dots{display:flex;gap:7px;}
+.chrome .dots i{width:11px;height:11px;border-radius:50%;background:var(--line);}
+.chrome .tab{margin-left:14px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);background:oklch(0.18 0.014 285);padding:7px 14px;border-radius:8px;}
+.chrome .body{display:flex;align-items:center;justify-content:space-between;padding:22px 26px;}
+
+.foot{padding:50px 0 70px;color:var(--faint);font-size:13.5px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+
+@media(max-width:860px){
+  .dirs,.lockups,.variants{grid-template-columns:1fr;}
+  .lock.stack{grid-row:auto;}
+  .sec-label .desc{margin-left:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- defs: shared glow + gradients -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="bead" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="oklch(0.95 0.06 92)"/>
+      <stop offset="55%" stop-color="oklch(0.84 0.13 88)"/>
+      <stop offset="100%" stop-color="oklch(0.72 0.14 78)"/>
+    </radialGradient>
+    <linearGradient id="strand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="oklch(0.88 0.09 88)"/>
+      <stop offset="100%" stop-color="oklch(0.70 0.12 80)"/>
+    </linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="1.1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<header class="page-head">
+  <div class="glow"></div>
+  <div class="wrap">
+    <span class="kicker">Brand Identity · Logo System</span>
+    <h1>The <em>Chandelier</em> mark.</h1>
+    <p>Four directions for the identity — each built from light, geometry, and the Bodoni wordmark. Pick a favourite and I'll refine it, then thread it through the site, favicon, and social.</p>
+  </div>
+</header>
+
+<!-- ============ DIRECTIONS ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">
+      <span class="n">01</span>
+      <h2>Mark directions</h2>
+      <span class="desc">Same brand, four personalities — from literal chandelier to pure light.</span>
+    </div>
+
+    <div class="dirs">
+
+      <!-- A · TIERED -->
+      <article class="dir feat">
+        <span class="pick">Recommended</span>
+        <div class="stage">
+          <svg width="170" height="170" viewBox="0 0 100 100" fill="none" aria-label="Tiered chandelier mark">
+            <g stroke="url(#strand)" stroke-width="1.6" stroke-linecap="round">
+              <!-- mount + cord -->
+              <line x1="50" y1="8" x2="50" y2="22"/>
+              <circle cx="50" cy="6" r="2.2" fill="none"/>
+              <!-- top tier arm -->
+              <path d="M32 30 Q50 19 68 30" fill="none"/>
+              <line x1="50" y1="22" x2="50" y2="23"/>
+              <line x1="32" y1="30" x2="32" y2="35"/>
+              <line x1="68" y1="30" x2="68" y2="35"/>
+              <line x1="50" y1="23" x2="50" y2="31"/>
+              <!-- mid spine -->
+              <line x1="50" y1="37" x2="50" y2="45"/>
+              <!-- bottom tier arm -->
+              <path d="M22 52 Q50 39 78 52" fill="none"/>
+              <line x1="22" y1="52" x2="22" y2="57"/>
+              <line x1="36" y1="49" x2="36" y2="58"/>
+              <line x1="64" y1="49" x2="64" y2="58"/>
+              <line x1="78" y1="52" x2="78" y2="57"/>
+              <line x1="50" y1="45" x2="50" y2="64"/>
+            </g>
+            <g fill="url(#bead)" filter="url(#soft)">
+              <circle cx="32" cy="38" r="3"/>
+              <circle cx="68" cy="38" r="3"/>
+              <circle cx="50" cy="34" r="3.4"/>
+              <circle cx="22" cy="60" r="3"/>
+              <circle cx="36" cy="61" r="2.6"/>
+              <circle cx="64" cy="61" r="2.6"/>
+              <circle cx="78" cy="60" r="3"/>
+              <circle cx="50" cy="67" r="3.4"/>
+              <!-- finial -->
+              <path d="M50 71 q3 4 0 8 q-3 -4 0 -8" />
+            </g>
+          </svg>
+        </div>
+        <div class="meta">
+          <div>
+            <h3>The Tiered</h3>
+            <p>A literal, symmetrical chandelier in glowing beads. Warm and unmistakable.</p>
+          </div>
+          <span class="tag">Literal</span>
+        </div>
+      </article>
+
+      <!-- B · CROWN OF LIGHT -->
+      <article class="dir">
+        <span class="pick">Direction B</span>
+        <div class="stage">
+          <svg width="170" height="170" viewBox="0 0 100 100" fill="none" aria-label="Crown of light mark">
+            <line x1="50" y1="8" x2="50" y2="18" stroke="url(#strand)" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="50" cy="6" r="2.2" stroke="url(#strand)" stroke-width="1.6"/>
+            <g stroke="url(#strand)" stroke-width="1.7" fill="none" stroke-linecap="round">
+              <path d="M26 56 A26 26 0 0 1 74 56"/>
+              <path d="M33 60 A19 20 0 0 1 67 60"/>
+              <path d="M40 64 A12 14 0 0 1 60 64"/>
+            </g>
+            <g stroke="url(#strand)" stroke-width="1.3" stroke-linecap="round">
+              <line x1="28" y1="58" x2="28" y2="64"/>
+              <line x1="39" y1="64" x2="39" y2="71"/>
+              <line x1="50" y1="66" x2="50" y2="75"/>
+              <line x1="61" y1="64" x2="61" y2="71"/>
+              <line x1="72" y1="58" x2="72" y2="64"/>
+            </g>
+            <g fill="url(#bead)" filter="url(#soft)">
+              <circle cx="28" cy="67" r="2.8"/>
+              <circle cx="39" cy="74" r="2.6"/>
+              <circle cx="50" cy="78" r="3.2"/>
+              <circle cx="61" cy="74" r="2.6"/>
+              <circle cx="72" cy="67" r="2.8"/>
+            </g>
+          </svg>
+        </div>
+        <div class="meta">
+          <div>
+            <h3>Crown of Light</h3>
+            <p>Concentric arcs radiating into hanging lights — reads as a dome of illumination.</p>
+          </div>
+          <span class="tag">Radiant</span>
+        </div>
+      </article>
+
+      <!-- C · MONOGRAM -->
+      <article class="dir">
+        <span class="pick">Direction C</span>
+        <div class="stage">
+          <svg width="180" height="170" viewBox="0 0 110 100" fill="none" aria-label="Monogram C mark">
+            <text x="50" y="50" font-family="Bodoni Moda, serif" font-weight="600" font-size="86" fill="var(--white)" text-anchor="middle" dominant-baseline="central" style="font-style:italic">C</text>
+            <!-- pendant hanging in the C aperture -->
+            <line x1="63" y1="30" x2="63" y2="44" stroke="url(#strand)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M63 44 l5 7 -5 9 -5 -9 z" fill="url(#bead)" filter="url(#soft)" stroke="url(#strand)" stroke-width="0.8"/>
+            <line x1="59.5" y1="51" x2="66.5" y2="51" stroke="oklch(0.95 0.05 92)" stroke-width="0.6" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <div>
+            <h3>The Monogram</h3>
+            <p>A Bodoni italic “C” cradling a single faceted crystal. Compact, editorial, ownable.</p>
+          </div>
+          <span class="tag">Lettermark</span>
+        </div>
+      </article>
+
+      <!-- D · PENDANT -->
+      <article class="dir">
+        <span class="pick">Direction D</span>
+        <div class="stage">
+          <svg width="170" height="170" viewBox="0 0 100 100" fill="none" aria-label="Pendant crystal mark">
+            <circle cx="50" cy="14" r="3" stroke="url(#strand)" stroke-width="1.6"/>
+            <line x1="50" y1="17" x2="50" y2="30" stroke="url(#strand)" stroke-width="1.6" stroke-linecap="round"/>
+            <!-- faceted teardrop -->
+            <path d="M50 30 L64 50 Q50 84 50 84 Q36 50 36 50 Z" fill="url(#bead)" filter="url(#soft)" stroke="url(#strand)" stroke-width="1"/>
+            <g stroke="oklch(0.55 0.10 80)" stroke-width="0.7" opacity="0.55">
+              <line x1="36" y1="50" x2="64" y2="50"/>
+              <line x1="50" y1="30" x2="50" y2="84"/>
+              <line x1="42" y1="40" x2="58" y2="40"/>
+            </g>
+            <line x1="46" y1="36" x2="44" y2="46" stroke="oklch(0.97 0.04 92)" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <div>
+            <h3>The Pendant</h3>
+            <p>One faceted drop of light. Minimal, gem-like, and flawless at favicon scale.</p>
+          </div>
+          <span class="tag">Minimal</span>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ LOCKUPS ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">
+      <span class="n">02</span>
+      <h2>Lockups</h2>
+      <span class="desc">The recommended “Tiered” mark with the Bodoni wordmark, horizontal and stacked.</span>
+    </div>
+
+    <div class="lockups">
+      <div class="lock">
+        <span class="cap">Primary · Horizontal</span>
+        <div class="lk-h">
+          <svg width="58" height="58" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <g stroke="url(#strand)" stroke-width="1.8" stroke-linecap="round">
+              <line x1="50" y1="8" x2="50" y2="22"/><circle cx="50" cy="6" r="2.2"/>
+              <path d="M32 30 Q50 19 68 30"/><line x1="50" y1="23" x2="50" y2="31"/>
+              <line x1="32" y1="30" x2="32" y2="35"/><line x1="68" y1="30" x2="68" y2="35"/>
+              <line x1="50" y1="37" x2="50" y2="64"/>
+              <path d="M22 52 Q50 39 78 52"/>
+              <line x1="22" y1="52" x2="22" y2="57"/><line x1="36" y1="49" x2="36" y2="58"/>
+              <line x1="64" y1="49" x2="64" y2="58"/><line x1="78" y1="52" x2="78" y2="57"/>
+            </g>
+            <g fill="url(#bead)" filter="url(#soft)">
+              <circle cx="32" cy="38" r="3"/><circle cx="68" cy="38" r="3"/><circle cx="50" cy="34" r="3.4"/>
+              <circle cx="22" cy="60" r="3"/><circle cx="36" cy="61" r="2.6"/><circle cx="64" cy="61" r="2.6"/>
+              <circle cx="78" cy="60" r="3"/><circle cx="50" cy="67" r="3.4"/>
+            </g>
+          </svg>
+          <span class="name">Chandelier<span class="sub">Consulting</span></span>
+        </div>
+      </div>
+
+      <div class="lock stack">
+        <span class="cap">Stacked · Centered</span>
+        <div class="lk-s">
+          <svg width="62" height="62" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <g stroke="url(#strand)" stroke-width="1.8" stroke-linecap="round">
+              <line x1="50" y1="8" x2="50" y2="22"/><circle cx="50" cy="6" r="2.2"/>
+              <path d="M32 30 Q50 19 68 30"/><line x1="50" y1="23" x2="50" y2="31"/>
+              <line x1="32" y1="30" x2="32" y2="35"/><line x1="68" y1="30" x2="68" y2="35"/>
+              <line x1="50" y1="37" x2="50" y2="64"/>
+              <path d="M22 52 Q50 39 78 52"/>
+              <line x1="22" y1="52" x2="22" y2="57"/><line x1="36" y1="49" x2="36" y2="58"/>
+              <line x1="64" y1="49" x2="64" y2="58"/><line x1="78" y1="52" x2="78" y2="57"/>
+            </g>
+            <g fill="url(#bead)" filter="url(#soft)">
+              <circle cx="32" cy="38" r="3"/><circle cx="68" cy="38" r="3"/><circle cx="50" cy="34" r="3.4"/>
+              <circle cx="22" cy="60" r="3"/><circle cx="36" cy="61" r="2.6"/><circle cx="64" cy="61" r="2.6"/>
+              <circle cx="78" cy="60" r="3"/><circle cx="50" cy="67" r="3.4"/>
+            </g>
+          </svg>
+          <div>
+            <div class="name">Chandelier</div>
+            <div class="sub">Consulting</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lock">
+        <span class="cap">Wordmark only</span>
+        <div class="lk-h">
+          <span class="name" style="font-size:48px;">Chande<b>l</b>ier</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VARIANTS ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">
+      <span class="n">03</span>
+      <h2>Color &amp; reverse</h2>
+      <span class="desc">The mark holds up in full color, single-tone, knockout, and on gold.</span>
+    </div>
+
+    <div class="variants">
+      <div class="variant">
+        <svg width="74" height="74" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <g stroke="url(#strand)" stroke-width="1.8" stroke-linecap="round">
+            <line x1="50" y1="8" x2="50" y2="22"/><circle cx="50" cy="6" r="2.2"/>
+            <path d="M32 30 Q50 19 68 30"/><line x1="50" y1="23" x2="50" y2="31"/>
+            <line x1="32" y1="30" x2="32" y2="35"/><line x1="68" y1="30" x2="68" y2="35"/>
+            <line x1="50" y1="37" x2="50" y2="64"/>
+            <path d="M22 52 Q50 39 78 52"/>
+            <line x1="22" y1="52" x2="22" y2="57"/><line x1="36" y1="49" x2="36" y2="58"/>
+            <line x1="64" y1="49" x2="64" y2="58"/><line x1="78" y1="52" x2="78" y2="57"/>
+          </g>
+          <g fill="url(#bead)" filter="url(#soft)">
+            <circle cx="32" cy="38" r="3"/><circle cx="68" cy="38" r="3"/><circle cx="50" cy="34" r="3.4"/>
+            <circle cx="22" cy="60" r="3"/><circle cx="36" cy="61" r="2.6"/><circle cx="64" cy="61" r="2.6"/>
+            <circle cx="78" cy="60" r="3"/><circle cx="50" cy="67" r="3.4"/>
+          </g>
+        </svg>
+        <span class="cap">Primary</span>
+      </div>
+
+      <div class="variant">
+        <svg width="74" height="74" viewBox="0 0 100 100" fill="none" stroke="var(--white)" aria-hidden="true">
+          <g stroke-width="1.8" stroke-linecap="round">
+            <line x1="50" y1="8" x2="50" y2="22"/><circle cx="50" cy="6" r="2.2"/>
+            <path d="M32 30 Q50 19 68 30"/><line x1="50" y1="23" x2="50" y2="31"/>
+            <line x1="32" y1="30" x2="32" y2="35"/><line x1="68" y1="30" x2="68" y2="35"/>
+            <line x1="50" y1="37" x2="50" y2="64"/>
+            <path d="M22 52 Q50 39 78 52"/>
+            <line x1="22" y1="52" x2="22" y2="57"/><line x1="36" y1="49" x2="36" y2="58"/>
+            <line x1="64" y1="49" x2="64" y2="58"/><line x1="78" y1="52" x2="78" y2="57"/>
+          </g>
+          <g fill="var(--white)" stroke="none">
+            <circle cx="32" cy="38" r="3"/><circle cx="68" cy="38" r="3"/><circle cx="50" cy="34" r="3.4"/>
+            <circle cx="22" cy="60" r="3"/><circle cx="36" cy="61" r="2.6"/><circle cx="64" cy="61" r="2.6"/>
+            <circle cx="78" cy="60" r="3"/><circle cx="50" cy="67" r="3.4"/>
+          </g>
+        </svg>
+        <span class="cap">Mono / knockout</span>
+      </div>
+
+      <div class="variant gold-bg">
+        <svg width="74" height="74" viewBox="0 0 100 100" fill="none" stroke="oklch(0.18 0.02 60)" aria-hidden="true">
+          <g stroke-width="1.8" stroke-linecap="round">
+            <line x1="50" y1="8" x2="50" y2="22"/><circle cx="50" cy="6" r="2.2"/>
+            <path d="M32 30 Q50 19 68 30"/><line x1="50" y1="23" x2="50" y2="31"/>
+            <line x1="32" y1="30" x2="32" y2="35"/><line x1="68" y1="30" x2="68" y2="35"/>
+            <line x1="50" y1="37" x2="50" y2="64"/>
+            <path d="M22 52 Q50 39 78 52"/>
+            <line x1="22" y1="52" x2="22" y2="57"/><line x1="36" y1="49" x2="36" y2="58"/>
+            <line x1="64" y1="49" x2="64" y2="58"/><line x1="78" y1="52" x2="78" y2="57"/>
+          </g>
+          <g fill="oklch(0.18 0.02 60)" stroke="none">
+            <circle cx="32" cy="38" r="3"/><circle cx="68" cy="38" r="3"/><circle cx="50" cy="34" r="3.4"/>
+            <circle cx="22" cy="60" r="3"/><circle cx="36" cy="61" r="2.6"/><circle cx="64" cy="61" r="2.6"/>
+            <circle cx="78" cy="60" r="3"/><circle cx="50" cy="67" r="3.4"/>
+          </g>
+        </svg>
+        <span class="cap">On gold</span>
+      </div>
+
+      <div class="variant light">
+        <svg width="74" height="74" viewBox="0 0 100 100" fill="none" stroke="oklch(0.20 0.012 285)" aria-hidden="true">
+          <g stroke-width="1.8" stroke-linecap="round">
+            <line x1="50" y1="8" x2="50" y2="22"/><circle cx="50" cy="6" r="2.2"/>
+            <path d="M32 30 Q50 19 68 30"/><line x1="50" y1="23" x2="50" y2="31"/>
+            <line x1="32" y1="30" x2="32" y2="35"/><line x1="68" y1="30" x2="68" y2="35"/>
+            <line x1="50" y1="37" x2="50" y2="64"/>
+            <path d="M22 52 Q50 39 78 52"/>
+            <line x1="22" y1="52" x2="22" y2="57"/><line x1="36" y1="49" x2="36" y2="58"/>
+            <line x1="64" y1="49" x2="64" y2="58"/><line x1="78" y1="52" x2="78" y2="57"/>
+          </g>
+          <g fill="oklch(0.20 0.012 285)" stroke="none">
+            <circle cx="32" cy="38" r="3"/><circle cx="68" cy="38" r="3"/><circle cx="50" cy="34" r="3.4"/>
+            <circle cx="22" cy="60" r="3"/><circle cx="36" cy="61" r="2.6"/><circle cx="64" cy="61" r="2.6"/>
+            <circle cx="78" cy="60" r="3"/><circle cx="50" cy="67" r="3.4"/>
+          </g>
+        </svg>
+        <span class="cap">On light</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAVICON / SMALL ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">
+      <span class="n">04</span>
+      <h2>At small sizes</h2>
+      <span class="desc">For favicon and app tiles, the minimal Pendant keeps its read where the full mark would muddy.</span>
+    </div>
+
+    <div class="favs">
+      <div class="fav">
+        <div class="box tinted b64">
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <line x1="50" y1="16" x2="50" y2="30" stroke="url(#strand)" stroke-width="2.4" stroke-linecap="round"/>
+            <circle cx="50" cy="13" r="3.4" stroke="url(#strand)" stroke-width="2.4"/>
+            <path d="M50 30 L64 50 Q50 84 50 84 Q36 50 36 50 Z" fill="url(#bead)" stroke="url(#strand)" stroke-width="1.4"/>
+          </svg>
+        </div>
+        <span>64 px</span>
+      </div>
+      <div class="fav">
+        <div class="box tinted b32">
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <line x1="50" y1="18" x2="50" y2="32" stroke="url(#strand)" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M50 32 L65 52 Q50 84 50 84 Q35 52 35 52 Z" fill="url(#bead)" stroke="url(#strand)" stroke-width="2"/>
+          </svg>
+        </div>
+        <span>32 px</span>
+      </div>
+      <div class="fav">
+        <div class="box tinted b16">
+          <svg width="12" height="12" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <path d="M50 26 L68 52 Q50 86 50 86 Q32 52 32 52 Z" fill="url(#bead)"/>
+          </svg>
+        </div>
+        <span>16 px</span>
+      </div>
+
+      <!-- browser tab demo -->
+      <div class="chrome" style="flex:1;min-width:320px;margin-left:10px;">
+        <div class="bar">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="tab">
+            <svg width="14" height="14" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <path d="M50 28 L66 52 Q50 84 50 84 Q34 52 34 52 Z" fill="url(#bead)"/>
+            </svg>
+            Chandelier — Illuminate
+          </div>
+        </div>
+        <div class="body">
+          <div class="lk-h">
+            <span class="name" style="font-size:24px;">Chande<b>l</b>ier</span>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:0.1em;">chandelierconsulting.dev</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap foot">
+  <span>Chandelier — Logo System · Tell me which direction and I'll refine + ship it to the site.</span>
+  <span>① Tiered &nbsp; ② Crown &nbsp; ③ Monogram &nbsp; ④ Pendant</span>
+</div>
+
+</body>
+</html>
