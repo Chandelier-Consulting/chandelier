@@ -44,7 +44,7 @@ body {
   background: var(--black);
   color: var(--white);
   font-family: var(--sans);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 350;
   line-height: 1.6;
   letter-spacing: 0;
@@ -86,7 +86,7 @@ textarea {
 }
 
 .section-pad {
-  padding-block: clamp(96px, 14vh, 180px);
+  padding-block: clamp(56px, 7.5vh, 96px);
 }
 
 .kicker {
@@ -124,14 +124,15 @@ h4 {
 }
 
 .h-display {
-  margin: 0 0 30px;
-  font-size: clamp(42px, 6vw, 90px);
-  line-height: 0.99;
+  margin: 0 0 20px;
+  font-size: clamp(34px, 4.4vw, 58px);
+  line-height: 1.07;
 }
 
 .h-section {
-  font-size: clamp(38px, 6vw, 76px);
-  line-height: 1;
+  display: block;
+  font-size: clamp(26px, 3.4vw, 42px);
+  line-height: 1.1;
 }
 
 .h-display em {
@@ -144,7 +145,7 @@ h4 {
   max-width: 56ch;
   margin: 0;
   color: var(--muted);
-  font-size: clamp(18px, 2.1vw, 23px);
+  font-size: clamp(15.5px, 1.15vw, 17px);
   font-weight: 350;
   line-height: 1.55;
 }
@@ -154,8 +155,8 @@ h4 {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  min-height: 52px;
-  padding: 15px 28px;
+  min-height: 48px;
+  padding: 13px 22px;
   border: 1px solid var(--gold);
   border-radius: 999px;
   background: var(--gold);
@@ -363,7 +364,8 @@ h4 {
   min-height: 100svh;
   align-items: center;
   overflow: hidden;
-  padding-top: 120px;
+  padding-top: 96px;
+  padding-bottom: 42px;
 }
 
 .glow {
@@ -403,21 +405,21 @@ h4 {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.78fr);
   align-items: center;
-  gap: clamp(20px, 4vw, 56px);
+  gap: clamp(28px, 5vw, 72px);
 }
 
 .hero-copy {
-  max-width: 680px;
+  max-width: 560px;
 }
 
 .hero-copy .kicker {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .hero .lede {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .hero-actions {
@@ -429,7 +431,7 @@ h4 {
 .chandelier-stage {
   position: relative;
   display: grid;
-  min-height: min(72vh, 680px);
+  min-height: min(54vh, 500px);
   place-items: center;
 }
 
@@ -448,9 +450,29 @@ h4 {
 .hero-chandelier {
   position: relative;
   z-index: 2;
-  width: min(100%, 460px);
-  height: min(64vh, 600px);
-  filter: drop-shadow(0 30px 80px oklch(0.82 0.13 88 / 0.25));
+  overflow: hidden;
+  width: min(100%, 390px);
+  aspect-ratio: 0.78;
+  border: 1px solid oklch(0.84 0.13 88 / 0.22);
+  border-radius: 8px;
+  background: var(--black-2);
+  box-shadow: 0 30px 90px oklch(0.05 0.01 250 / 0.6), 0 0 80px oklch(0.82 0.13 88 / 0.18);
+}
+
+.hero-chandelier img {
+  object-fit: cover;
+  object-position: 64% 42%;
+  filter: saturate(0.95) contrast(1.05);
+}
+
+.hero-chandelier::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, oklch(0.1 0.01 250 / 0.08), oklch(0.1 0.01 250 / 0.38)),
+    radial-gradient(circle at 64% 30%, transparent 0 30%, oklch(0.1 0.01 250 / 0.22) 72%);
+  pointer-events: none;
 }
 
 @keyframes breathe {
@@ -517,23 +539,23 @@ h4 {
   overflow: hidden;
   border-block: 1px solid var(--line);
   background: var(--black);
-  padding-block: 26px;
+  padding-block: 18px;
 }
 
 .strip-track {
   display: flex;
   width: max-content;
-  gap: 64px;
+  gap: 48px;
   animation: marquee 32s linear infinite;
 }
 
 .strip-track span {
   display: inline-flex;
   align-items: center;
-  gap: 64px;
+  gap: 48px;
   color: var(--faint);
   font-family: var(--display);
-  font-size: clamp(20px, 2.6vw, 30px);
+  font-size: clamp(18px, 2vw, 24px);
   font-style: italic;
   white-space: nowrap;
 }
@@ -553,16 +575,16 @@ h4 {
 }
 
 .sec-head {
-  max-width: 760px;
-  margin-bottom: clamp(48px, 7vw, 86px);
+  max-width: 590px;
+  margin-bottom: clamp(24px, 3.8vw, 40px);
 }
 
 .sec-head .kicker {
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .sec-head .lede {
-  margin-top: 26px;
+  margin-top: 20px;
 }
 
 .services-grid {
@@ -575,11 +597,11 @@ h4 {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: 430px;
+  min-height: 238px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: linear-gradient(180deg, oklch(0.2 0.013 220 / 0.72), oklch(0.15 0.012 250 / 0.58));
-  padding: 38px 34px 42px;
+  padding: 20px;
   transition: border-color 0.6s var(--ease), transform 0.6s var(--ease);
 }
 
@@ -612,15 +634,15 @@ h4 {
 
 .svc-num {
   color: var(--faint);
-  font-size: 12px;
-  letter-spacing: 0.2em;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
 }
 
 .svc-icon {
   display: grid;
-  width: 56px;
-  height: 56px;
-  margin: 26px 0 28px;
+  width: 38px;
+  height: 38px;
+  margin: 14px 0 16px;
   place-items: center;
   border: 1px solid oklch(0.5 0.08 88 / 0.5);
   border-radius: 8px;
@@ -629,37 +651,37 @@ h4 {
 }
 
 .svc-icon svg {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
 }
 
 .svc h3 {
-  margin-bottom: 14px;
-  font-size: 28px;
-  line-height: 1.08;
+  margin-bottom: 8px;
+  font-size: clamp(18px, 1.45vw, 21px);
+  line-height: 1.12;
 }
 
 .role {
   display: block;
-  margin-bottom: 22px;
+  margin-bottom: 12px;
   color: var(--gold);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
 }
 
 .svc p,
 .client p {
   margin: 0;
   color: var(--muted);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 13.5px;
+  line-height: 1.45;
 }
 
 .svc .eg {
-  margin-top: 24px;
-  padding-top: 22px;
+  margin-top: 18px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
-  font-size: 15px;
+  font-size: 13.8px;
 }
 
 .svc .eg b {
@@ -682,12 +704,12 @@ h4 {
 
 .stat {
   background: var(--black-2);
-  padding: 44px 32px;
+  padding: clamp(18px, 2vw, 26px);
 }
 
 .tag {
   display: block;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   color: var(--gold);
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -697,7 +719,7 @@ h4 {
   overflow: hidden;
   color: var(--white);
   font-family: var(--display);
-  font-size: clamp(48px, 6vw, 76px);
+  font-size: clamp(28px, 3.2vw, 40px);
   font-weight: 600;
   line-height: 1;
 }
@@ -707,9 +729,9 @@ h4 {
 }
 
 .stat .label {
-  margin-top: 16px;
+  margin-top: 12px;
   color: var(--muted);
-  font-size: 15.5px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -721,7 +743,7 @@ h4 {
 }
 
 .cl-head .kicker {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .cl-rail {
@@ -742,7 +764,7 @@ h4 {
   position: relative;
   display: flex;
   width: 78vw;
-  min-height: 360px;
+  min-height: 230px;
   flex: none;
   flex-direction: column;
   justify-content: space-between;
@@ -751,28 +773,29 @@ h4 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: linear-gradient(160deg, oklch(0.18 0.012 230 / 0.72), oklch(0.14 0.012 250 / 0.2));
-  padding: 30px 30px 34px;
+  padding: 20px;
 }
 
 .client .num {
   position: absolute;
-  top: 24px;
-  right: 28px;
+  top: 20px;
+  right: 24px;
   color: var(--faint);
   font-family: var(--mono);
   font-size: 12px;
 }
 
 .client .ci {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   margin-bottom: auto;
   color: var(--gold);
 }
 
 .client h4 {
-  margin: 24px 0 8px;
-  font-size: 25px;
+  margin: 16px 0 6px;
+  font-size: clamp(18px, 1.4vw, 21px);
+  line-height: 1.14;
 }
 
 .cl-hint {
@@ -817,8 +840,8 @@ h4 {
 }
 
 .cta h2 {
-  max-width: 16ch;
-  margin: 24px auto 26px;
+  max-width: 17ch;
+  margin: 24px auto 24px;
 }
 
 .cta .lede {
@@ -979,6 +1002,408 @@ h4 {
   font-size: 13.5px;
 }
 
+.service-checks {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.service-checks legend {
+  margin-bottom: 10px;
+}
+
+.service-checks > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.service-checks label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: oklch(0.11 0.01 250 / 0.72);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 14px;
+  letter-spacing: 0;
+  padding: 12px;
+  text-transform: none;
+}
+
+.service-checks input {
+  accent-color: var(--gold);
+}
+
+.subpage,
+.admin-shell {
+  min-height: 100svh;
+  background: var(--black);
+  color: var(--white);
+}
+
+.subnav {
+  display: flex;
+  max-width: var(--maxw);
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 auto;
+  padding: 24px var(--gutter);
+}
+
+.subnav a {
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.subnav > a {
+  color: var(--white);
+  font-family: var(--display);
+  font-size: 25px;
+}
+
+.subnav div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.subhero,
+.subsection {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(54px, 9vw, 110px) var(--gutter);
+}
+
+.subhero h1 {
+  max-width: 13ch;
+  margin-top: 24px;
+  font-size: clamp(44px, 7vw, 88px);
+  line-height: 0.98;
+}
+
+.service-list,
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.service-list article,
+.pricing-grid article,
+.admin-grid article,
+.admin-metrics article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, oklch(0.2 0.013 220 / 0.72), oklch(0.15 0.012 250 / 0.58));
+  padding: 26px;
+}
+
+.service-list span,
+.pricing-grid h2,
+.admin-grid h2 {
+  color: var(--gold);
+  font-family: var(--display);
+  font-size: 28px;
+}
+
+.service-list p,
+.pricing-grid p,
+.admin-grid p,
+.admin-row span,
+.admin-page header span {
+  color: var(--muted);
+}
+
+.pricing-grid strong {
+  display: block;
+  margin: 18px 0;
+  color: var(--white);
+  font-family: var(--display);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.admin-shell aside {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  border-right: 1px solid var(--line);
+  background: var(--black-2);
+  padding: 26px;
+}
+
+.admin-brand {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 28px;
+  color: var(--white);
+  font-family: var(--display);
+  font-size: 26px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.admin-brand span {
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.admin-shell nav {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-shell nav a {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 10px 12px;
+  text-decoration: none;
+}
+
+.admin-shell nav a:hover {
+  border-color: var(--line);
+  color: var(--gold);
+}
+
+.admin-shell main {
+  min-width: 0;
+  padding: clamp(28px, 4vw, 56px);
+}
+
+.admin-page header {
+  margin-bottom: 34px;
+}
+
+.admin-page header p {
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+
+.admin-page h1 {
+  font-size: clamp(44px, 6vw, 76px);
+  line-height: 1;
+}
+
+.admin-metrics,
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.admin-metrics span {
+  display: block;
+  color: var(--faint);
+  font-size: 13px;
+}
+
+.admin-metrics strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--display);
+  font-size: 36px;
+}
+
+.admin-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+
+.admin-row a {
+  color: var(--gold);
+}
+
+.invoice-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.45fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.invoice-form,
+.invoice-result {
+  display: grid;
+  gap: 16px;
+}
+
+.invoice-panel,
+.invoice-result,
+.invoice-summary {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, oklch(0.2 0.013 220 / 0.72), oklch(0.15 0.012 250 / 0.58));
+  padding: 24px;
+}
+
+.invoice-panel h2,
+.invoice-result dt {
+  color: var(--gold);
+}
+
+.invoice-head,
+.invoice-summary,
+.invoice-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.billing-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: oklch(0.11 0.01 250 / 0.55);
+  padding: 6px;
+}
+
+.billing-toggle label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.2;
+  padding: 12px 14px;
+  text-align: center;
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+
+.billing-toggle label.active {
+  border-color: oklch(0.84 0.13 88 / 0.58);
+  background: oklch(0.84 0.13 88 / 0.12);
+  color: var(--gold);
+}
+
+.billing-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.line-editor {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 90px 130px auto;
+  gap: 12px;
+  align-items: end;
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.remove-line {
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding-inline: 14px;
+}
+
+.invoice-summary strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.invoice-result {
+  position: sticky;
+  top: 24px;
+}
+
+.invoice-result p,
+.invoice-result dd {
+  color: var(--muted);
+}
+
+.invoice-result .result-note {
+  border-top: 1px solid var(--line);
+  margin: 0;
+  padding-top: 16px;
+}
+
+.invoice-result dl {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.invoice-result dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.invoice-result dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.status-dot {
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  padding: 6px 10px;
+  text-transform: uppercase;
+}
+
+.status-dot.working {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.status-dot.error,
+.danger {
+  border-color: oklch(0.62 0.18 25);
+  color: oklch(0.78 0.14 35);
+}
+
+.hosted-link {
+  color: var(--gold);
+  text-decoration: none;
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(34px);
@@ -1032,25 +1457,24 @@ h4 {
 @media (min-width: 901px) {
   .svc-track {
     position: relative;
-    height: 220vh;
+    height: auto;
   }
 
   .svc-stage {
-    position: sticky;
-    top: 0;
-    display: flex;
-    height: 100vh;
+    position: relative;
+    display: block;
+    height: auto;
     align-items: center;
+    padding-bottom: 24px;
   }
 
   .svc[data-card] {
-    opacity: 0;
     will-change: transform, opacity;
   }
 
   .cl-track {
     position: relative;
-    height: 260vh;
+    height: 165vh;
   }
 
   .cl-stage {
@@ -1059,9 +1483,10 @@ h4 {
     display: flex;
     height: 100vh;
     flex-direction: column;
-    justify-content: center;
-    gap: clamp(28px, 3.4vw, 48px);
+    justify-content: flex-start;
+    gap: clamp(12px, 1.7vw, 20px);
     overflow: hidden;
+    padding-top: clamp(74px, 10vh, 94px);
   }
 
   .cl-rail {
@@ -1070,23 +1495,23 @@ h4 {
   }
 
   .cl-row {
-    gap: 22px;
+    gap: 18px;
   }
 
   .cl-row .client {
-    width: min(32vw, 392px);
-    min-width: 330px;
-    min-height: 440px;
+    width: min(25vw, 280px);
+    min-width: 248px;
+    min-height: 230px;
     scroll-snap-align: none;
   }
 
   .cl-row .client h4 {
-    font-size: 30px;
+    font-size: 19px;
   }
 
   .cl-row .client .ci {
-    width: 48px;
-    height: 48px;
+    width: 30px;
+    height: 30px;
   }
 
   .scene-progress {
@@ -1099,7 +1524,7 @@ h4 {
     max-width: var(--maxw);
     align-items: center;
     gap: 12px;
-    margin: 6px auto 0;
+    margin: 0 auto;
     padding-inline: var(--gutter);
     color: var(--faint);
     font-family: var(--mono);
@@ -1128,23 +1553,23 @@ h4 {
 
   .hero {
     min-height: auto;
-    padding-top: 112px;
-    padding-bottom: 72px;
+    padding-top: 88px;
+    padding-bottom: 44px;
   }
 
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: 22px;
+    gap: 18px;
   }
 
   .chandelier-stage {
     order: -1;
-    min-height: 38vh;
+    min-height: auto;
   }
 
   .hero-chandelier {
-    max-width: 360px;
-    height: 48vh;
+    width: min(100%, 360px);
+    max-height: 38vh;
   }
 
   .services-grid {
@@ -1155,8 +1580,40 @@ h4 {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .service-list,
+  .pricing-grid,
+  .admin-metrics,
+  .admin-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-result {
+    position: static;
+  }
+
+  .line-editor {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .billing-toggle {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell aside {
+    position: static;
+    height: auto;
+  }
+
   .section-pad {
-    padding-block: clamp(76px, 11vh, 120px);
+    padding-block: clamp(48px, 6.5vh, 76px);
   }
 
   .cl-row {
@@ -1166,7 +1623,7 @@ h4 {
   .cl-hint {
     display: flex;
     max-width: var(--maxw);
-    margin: 28px auto 16px;
+    margin: 20px auto 12px;
     padding-inline: var(--gutter);
     color: var(--faint);
     font-family: var(--mono);
@@ -1199,13 +1656,13 @@ h4 {
   }
 
   .h-display {
-    font-size: clamp(40px, 13vw, 58px);
-    line-height: 1.02;
+    font-size: clamp(30px, 9vw, 38px);
+    line-height: 1.08;
   }
 
   .h-section {
-    font-size: clamp(34px, 10.5vw, 48px);
-    line-height: 1.04;
+    font-size: clamp(24px, 7.5vw, 31px);
+    line-height: 1.1;
   }
 
   .kicker {
@@ -1223,6 +1680,20 @@ h4 {
     grid-template-columns: 1fr;
   }
 
+  .service-checks > div,
+  .service-list,
+  .pricing-grid,
+  .admin-metrics,
+  .admin-grid,
+  .line-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .subnav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .hero-actions {
     width: 100%;
   }
@@ -1233,13 +1704,13 @@ h4 {
 
   .svc {
     min-height: auto;
-    padding: 30px 24px 32px;
+    padding: 20px 18px 22px;
   }
 
   .client {
-    width: 86vw;
-    min-height: 320px;
-    padding: 26px 24px 30px;
+    width: 82vw;
+    min-height: 220px;
+    padding: 18px;
   }
 
   .contact-card {
