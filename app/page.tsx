@@ -585,21 +585,21 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = index * 0.075;
-  const end = start + 0.24;
-  const y = useTransform(progress, [start, end], [24, 0]);
+  // Row-based stagger: cards in the same row light up together as you scroll
+  const row = Math.floor(index / 3);
+  const col = index % 3;
+  const start = row * 0.30 + col * 0.03;
+  const end = start + 0.18;
+  const opacity = useTransform(progress, [start, end], [0.30, 1]);
+  const y = useTransform(progress, [start, end], [20, 0]);
   const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
-  const scale = useTransform(progress, [start, end], [0.96, 1]);
+  const scale = useTransform(progress, [start, end], [0.97, 1]);
 
   return (
     <motion.article
       className="svc"
       data-card
-      initial={{ opacity: 0.25 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, margin: "-10% 0px" }}
-      transition={{ duration: 0.45, delay: index * 0.04, ease }}
-      style={desktop ? { y, rotate, scale } : undefined}
+      style={desktop ? { opacity, y, rotate, scale } : undefined}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
