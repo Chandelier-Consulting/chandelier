@@ -39,6 +39,9 @@ yarn-error.log*
 # conductor local overrides
 .conductor/settings.local.toml
 
+# supabase local link/cache state
+supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
