@@ -529,22 +529,21 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span ref={ref}>0</span>;
 }
 
+const svcContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+};
+const svcCard = {
+  hidden: { opacity: 0, y: 48, scale: 0.95 },
+  show:   { opacity: 1, y: 0,  scale: 1,    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+};
+
 function ServicesSection() {
   const ref = useRef<HTMLElement>(null);
-  const [desktop, setDesktop] = useState(false);
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.4 });
   const barScale = useTransform(progress, [0, 1], [0, 1]);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 901px)");
-    const update = () => setDesktop(mq.matches);
-
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
 
   return (
     <section className="section-pad" id="services">
@@ -561,11 +560,17 @@ function ServicesSection() {
       <section ref={ref} className="svc-track relative">
         <div className="svc-stage">
           <div className="wrap">
-            <div className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3">
+            <motion.div
+              className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3"
+              variants={svcContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-80px 0px" }}
+            >
               {services.map((service, index) => (
-                <ServiceCard key={service.title} index={index} desktop={desktop && !reduceMotion} progress={progress} service={service} />
+                <ServiceCard key={service.title} index={index} service={service} />
               ))}
-            </div>
+            </motion.div>
           </div>
           {!reduceMotion && <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: barScale }} /></div>}
         </div>
@@ -576,33 +581,16 @@ function ServicesSection() {
 
 function ServiceCard({
   index,
-  desktop,
-  progress,
   service,
 }: {
   index: number;
-  desktop: boolean;
-  progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const col = index % 3;
-  const cardRef = useRef<HTMLElement>(null);
-  const inView = useInView(cardRef, { once: true, margin: "0px 0px -80px 0px" });
-
-  // scroll-driven subtle parallax on desktop (position only, not opacity)
-  const pStart = index * 0.075;
-  const pEnd = pStart + 0.24;
-  const rotate = useTransform(progress, [pStart, pEnd], [(index - 1) * 2.5, 0]);
-  const scale = useTransform(progress, [pStart, pEnd], [0.97, 1]);
-
   return (
     <motion.article
-      ref={cardRef}
       className="svc"
       data-card
-      animate={{ opacity: inView ? 1 : 0.15, y: inView ? 0 : 32 }}
-      transition={{ duration: 0.6, delay: col * 0.1, ease: "easeOut" }}
-      style={desktop ? { rotate, scale } : undefined}
+      variants={svcCard}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
