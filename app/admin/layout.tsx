@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { adminSections } from "@/lib/demo-data";
+import { adminSections } from "@/lib/admin-data";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

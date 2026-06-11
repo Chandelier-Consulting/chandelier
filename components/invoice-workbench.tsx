@@ -16,15 +16,19 @@ type InvoiceResult = {
   stripe_subscription_id?: string | null;
   hosted_invoice_url?: string | null;
   status?: string | null;
+  invoice_status?: string | null;
+  subscription_status?: string | null;
+  one_time_total_cents?: number;
   months?: number;
   monthly_total_cents?: number;
 };
 
-type BillingMode = "invoice" | "subscription";
-
-const defaultItems: LineItem[] = [
-  { description: "Discovery, architecture, and project planning", quantity: 1, unit_amount_cents: 250000 },
+const defaultOneTimeItems: LineItem[] = [
   { description: "Website, automation, or dashboard implementation", quantity: 1, unit_amount_cents: 750000 },
+];
+
+const defaultRecurringItems: LineItem[] = [
+  { description: "Monthly AI automation support", quantity: 1, unit_amount_cents: 150000 },
 ];
 
 function dollarsToCents(value: FormDataEntryValue | null) {
@@ -41,89 +45,73 @@ function formatCurrency(cents: number) {
 }
 
 export function InvoiceWorkbench() {
-  const [items, setItems] = useState(defaultItems);
+  const [oneTimeItems, setOneTimeItems] = useState(defaultOneTimeItems);
+  const [recurringItems, setRecurringItems] = useState(defaultRecurringItems);
   const [result, setResult] = useState<InvoiceResult | null>(null);
-  const [billingMode, setBillingMode] = useState<BillingMode>("invoice");
   const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
-  const [message, setMessage] = useState("Create a custom Stripe invoice, then finalize, send, or void it from this screen.");
-
-  const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.quantity * item.unit_amount_cents, 0),
-    [items],
+  const [message, setMessage] = useState(
+    "Create upfront invoice charges and recurring subscription charges in one billing package.",
   );
 
-  function updateItem(index: number, patch: Partial<LineItem>) {
-    setItems((current) =>
+  const oneTimeSubtotal = useMemo(
+    () => oneTimeItems.reduce((sum, item) => sum + item.quantity * item.unit_amount_cents, 0),
+    [oneTimeItems],
+  );
+
+  const recurringSubtotal = useMemo(
+    () => recurringItems.reduce((sum, item) => sum + item.quantity * item.unit_amount_cents, 0),
+    [recurringItems],
+  );
+
+  function updateOneTimeItem(index: number, patch: Partial<LineItem>) {
+    setOneTimeItems((current) =>
       current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
     );
   }
 
-  function selectBillingMode(mode: BillingMode) {
-    setBillingMode(mode);
-    setResult(null);
-    setStatus("idle");
-    setMessage(
-      mode === "invoice"
-        ? "Create a custom Stripe invoice, then finalize, send, or void it from this screen."
-        : "Create a fixed monthly Stripe subscription that cancels after the selected number of months.",
+  function updateRecurringItem(index: number, patch: Partial<LineItem>) {
+    setRecurringItems((current) =>
+      current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
     );
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("working");
-    setMessage(
-      billingMode === "invoice"
-        ? "Creating draft invoice in Stripe..."
-        : "Creating fixed-month subscription schedule in Stripe...",
-    );
+    setMessage("Creating combined billing package in Stripe...");
 
     const formData = new FormData(event.currentTarget);
-    const basePayload = {
+    const payload = {
       customer_name: String(formData.get("customer_name") ?? ""),
       customer_email: String(formData.get("customer_email") ?? ""),
       stripe_customer_id: String(formData.get("stripe_customer_id") ?? "") || undefined,
       memo: String(formData.get("memo") ?? "") || undefined,
-      line_items: items,
+      due_date: String(formData.get("due_date") ?? "") || undefined,
+      months: Number(formData.get("months") ?? 6),
+      days_until_due: Number(formData.get("days_until_due") ?? 14),
+      discount_cents: dollarsToCents(formData.get("discount")),
+      deposit_cents: dollarsToCents(formData.get("deposit")),
+      retainer_cents: dollarsToCents(formData.get("retainer")),
+      one_time_items: oneTimeItems,
+      recurring_items: recurringItems,
     };
-    const payload =
-      billingMode === "invoice"
-        ? {
-            ...basePayload,
-            due_date: String(formData.get("due_date") ?? "") || undefined,
-            discount_cents: dollarsToCents(formData.get("discount")),
-            deposit_cents: dollarsToCents(formData.get("deposit")),
-            retainer_cents: dollarsToCents(formData.get("retainer")),
-          }
-        : {
-            ...basePayload,
-            months: Number(formData.get("months") ?? 6),
-            days_until_due: Number(formData.get("days_until_due") ?? 14),
-          };
 
-    const response = await fetch(
-      billingMode === "invoice" ? "/api/stripe/invoices" : "/api/stripe/subscriptions",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      },
-    );
+    const response = await fetch("/api/stripe/billing", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
     const body = await response.json().catch(() => null);
 
     if (!response.ok) {
       setStatus("error");
-      setMessage(body?.error ?? `${billingMode === "invoice" ? "Invoice" : "Subscription"} creation failed.`);
+      setMessage(body?.error ?? "Billing creation failed.");
       return;
     }
 
     setResult(body);
     setStatus("idle");
-    setMessage(
-      billingMode === "invoice"
-        ? "Draft invoice created. Review it, then finalize and send when ready."
-        : `Fixed-month subscription schedule created. Stripe will invoice monthly and cancel after ${body.months} months.`,
-    );
+    setMessage("Billing package created. Review the invoice, then finalize and send when ready.");
   }
 
   async function runAction(action: "finalize" | "send" | "void") {
@@ -149,7 +137,7 @@ export function InvoiceWorkbench() {
       return;
     }
 
-    setResult((current) => ({ ...current, ...body }));
+    setResult((current) => ({ ...current, ...body, invoice_status: body?.status ?? current?.invoice_status }));
     setStatus("idle");
     setMessage(`Invoice ${action} complete.`);
   }
@@ -157,32 +145,6 @@ export function InvoiceWorkbench() {
   return (
     <div className="invoice-workbench">
       <form onSubmit={submit} className="invoice-form">
-        <div className="invoice-panel">
-          <h2>Billing type</h2>
-          <div className="billing-toggle" role="radiogroup" aria-label="Billing type">
-            <label className={billingMode === "invoice" ? "active" : ""}>
-              <input
-                type="radio"
-                name="billing_mode"
-                value="invoice"
-                checked={billingMode === "invoice"}
-                onChange={() => selectBillingMode("invoice")}
-              />
-              <span>One-time invoice</span>
-            </label>
-            <label className={billingMode === "subscription" ? "active" : ""}>
-              <input
-                type="radio"
-                name="billing_mode"
-                value="subscription"
-                checked={billingMode === "subscription"}
-                onChange={() => selectBillingMode("subscription")}
-              />
-              <span>Fixed monthly subscription</span>
-            </label>
-          </div>
-        </div>
-
         <div className="invoice-panel">
           <h2>Customer</h2>
           <div className="form-grid">
@@ -198,43 +160,40 @@ export function InvoiceWorkbench() {
               Existing Stripe customer ID
               <input name="stripe_customer_id" placeholder="cus_..." />
             </label>
-            {billingMode === "invoice" ? (
-              <label className="field">
-                Due date
-                <input name="due_date" type="date" />
-              </label>
-            ) : (
-              <label className="field">
-                Invoice due in days
-                <input name="days_until_due" type="number" min="1" max="90" defaultValue="14" required />
-              </label>
-            )}
+            <label className="field">
+              One-time invoice due date
+              <input name="due_date" type="date" />
+            </label>
+            <label className="field">
+              Subscription invoice due in days
+              <input name="days_until_due" type="number" min="1" max="90" defaultValue="14" required />
+            </label>
           </div>
         </div>
 
         <div className="invoice-panel">
           <div className="invoice-head">
-            <h2>Custom line items</h2>
+            <h2>One-time charges</h2>
             <button
               type="button"
               className="btn ghost"
               onClick={() =>
-                setItems((current) => [
+                setOneTimeItems((current) => [
                   ...current,
-                  { description: "Additional service", quantity: 1, unit_amount_cents: 100000 },
+                  { description: "Additional one-time service", quantity: 1, unit_amount_cents: 100000 },
                 ])
               }
             >
               Add item
             </button>
           </div>
-          {items.map((item, index) => (
-            <div className="line-editor" key={`${item.description}-${index}`}>
+          {oneTimeItems.map((item, index) => (
+            <div className="line-editor" key={`one-time-${item.description}-${index}`}>
               <label className="field">
                 Description
                 <input
                   value={item.description}
-                  onChange={(event) => updateItem(index, { description: event.target.value })}
+                  onChange={(event) => updateOneTimeItem(index, { description: event.target.value })}
                   required
                 />
               </label>
@@ -245,7 +204,7 @@ export function InvoiceWorkbench() {
                   min="0.01"
                   step="0.01"
                   value={item.quantity}
-                  onChange={(event) => updateItem(index, { quantity: Number(event.target.value) })}
+                  onChange={(event) => updateOneTimeItem(index, { quantity: Number(event.target.value) })}
                   required
                 />
               </label>
@@ -254,7 +213,7 @@ export function InvoiceWorkbench() {
                 <input
                   value={(item.unit_amount_cents / 100).toString()}
                   onChange={(event) =>
-                    updateItem(index, { unit_amount_cents: dollarsToCents(event.target.value) })
+                    updateOneTimeItem(index, { unit_amount_cents: dollarsToCents(event.target.value) })
                   }
                   required
                 />
@@ -262,7 +221,7 @@ export function InvoiceWorkbench() {
               <button
                 type="button"
                 className="remove-line"
-                onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                onClick={() => setOneTimeItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
                 aria-label="Remove line item"
               >
                 Remove
@@ -272,29 +231,83 @@ export function InvoiceWorkbench() {
         </div>
 
         <div className="invoice-panel">
-          <h2>{billingMode === "invoice" ? "Adjustments" : "Subscription terms"}</h2>
-          <div className="form-grid">
-            {billingMode === "invoice" ? (
-              <>
-                <label className="field">
-                  Discount
-                  <input name="discount" placeholder="0" />
-                </label>
-                <label className="field">
-                  Deposit credit
-                  <input name="deposit" placeholder="0" />
-                </label>
-                <label className="field">
-                  Retainer
-                  <input name="retainer" placeholder="0" />
-                </label>
-              </>
-            ) : (
+          <div className="invoice-head">
+            <h2>Monthly subscription charges</h2>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() =>
+                setRecurringItems((current) => [
+                  ...current,
+                  { description: "Additional monthly service", quantity: 1, unit_amount_cents: 50000 },
+                ])
+              }
+            >
+              Add item
+            </button>
+          </div>
+          {recurringItems.map((item, index) => (
+            <div className="line-editor" key={`recurring-${item.description}-${index}`}>
               <label className="field">
-                Months
-                <input name="months" type="number" min="1" max="36" defaultValue="6" required />
+                Description
+                <input
+                  value={item.description}
+                  onChange={(event) => updateRecurringItem(index, { description: event.target.value })}
+                  required
+                />
               </label>
-            )}
+              <label className="field">
+                Qty
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={item.quantity}
+                  onChange={(event) => updateRecurringItem(index, { quantity: Number(event.target.value) })}
+                  required
+                />
+              </label>
+              <label className="field">
+                Unit price
+                <input
+                  value={(item.unit_amount_cents / 100).toString()}
+                  onChange={(event) =>
+                    updateRecurringItem(index, { unit_amount_cents: dollarsToCents(event.target.value) })
+                  }
+                  required
+                />
+              </label>
+              <button
+                type="button"
+                className="remove-line"
+                onClick={() => setRecurringItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                aria-label="Remove recurring line item"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="invoice-panel">
+          <h2>Terms and adjustments</h2>
+          <div className="form-grid">
+            <label className="field">
+              Discount
+              <input name="discount" placeholder="0" />
+            </label>
+            <label className="field">
+              Deposit credit
+              <input name="deposit" placeholder="0" />
+            </label>
+            <label className="field">
+              Retainer
+              <input name="retainer" placeholder="0" />
+            </label>
+            <label className="field">
+              Subscription months
+              <input name="months" type="number" min="1" max="36" defaultValue="6" required />
+            </label>
             <label className="field full">
               Memo
               <textarea name="memo" placeholder="Scope, payment terms, and context for the client." />
@@ -304,15 +317,15 @@ export function InvoiceWorkbench() {
 
         <div className="invoice-summary">
           <div>
-            <span>{billingMode === "invoice" ? "Subtotal" : "Monthly subtotal"}</span>
-            <strong>{formatCurrency(subtotal)}</strong>
+            <span>One-time subtotal</span>
+            <strong>{formatCurrency(oneTimeSubtotal)}</strong>
+          </div>
+          <div>
+            <span>Monthly subtotal</span>
+            <strong>{formatCurrency(recurringSubtotal)}</strong>
           </div>
           <button className="btn" type="submit" disabled={status === "working"}>
-            {status === "working"
-              ? "Working..."
-              : billingMode === "invoice"
-                ? "Create draft invoice"
-                : "Create subscription schedule"}
+            {status === "working" ? "Working..." : "Create billing package"}
           </button>
         </div>
       </form>
@@ -340,19 +353,23 @@ export function InvoiceWorkbench() {
           <div>
             <dt>Billing total</dt>
             <dd>
-              {result?.monthly_total_cents
-                ? `${formatCurrency(result.monthly_total_cents)} monthly for ${result.months} months`
-                : "No subscription"}
+              {result
+                ? `${formatCurrency(result.one_time_total_cents ?? 0)} upfront / ${formatCurrency(
+                    result.monthly_total_cents ?? 0,
+                  )} monthly${result.months ? ` for ${result.months} months` : ""}`
+                : "No billing package"}
             </dd>
           </div>
           <div>
-            <dt>Status</dt>
-            <dd>{result?.status ?? "No billing record"}</dd>
+            <dt>Invoice status</dt>
+            <dd>{result?.invoice_status ?? "No invoice"}</dd>
+          </div>
+          <div>
+            <dt>Subscription status</dt>
+            <dd>{result?.subscription_status ?? "No subscription"}</dd>
           </div>
         </dl>
-        {result?.stripe_subscription_schedule_id ? (
-          <p className="result-note">This schedule invoices monthly and automatically cancels at the end of term.</p>
-        ) : (
+        {result?.stripe_invoice_id ? (
           <div className="invoice-actions">
             <button type="button" className="btn ghost" onClick={() => runAction("finalize")}>
               Finalize
@@ -364,7 +381,10 @@ export function InvoiceWorkbench() {
               Void
             </button>
           </div>
-        )}
+        ) : null}
+        {result?.stripe_subscription_schedule_id ? (
+          <p className="result-note">This schedule invoices monthly and automatically cancels at the end of term.</p>
+        ) : null}
         {result?.hosted_invoice_url && (
           <a className="hosted-link" href={result.hosted_invoice_url} target="_blank" rel="noreferrer">
             Open hosted invoice

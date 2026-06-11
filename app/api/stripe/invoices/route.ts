@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     await stripe.invoiceItems.create({
       customer: customer.id,
       description: item.description,
-      amount: item.quantity * item.unit_amount_cents,
+      amount: Math.round(item.quantity * item.unit_amount_cents),
       currency: "usd",
     });
   }
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   });
 
   const subtotal = input.line_items.reduce(
-    (sum, item) => sum + item.quantity * item.unit_amount_cents,
+    (sum, item) => sum + Math.round(item.quantity * item.unit_amount_cents),
     0,
   );
   const total = Math.max(
