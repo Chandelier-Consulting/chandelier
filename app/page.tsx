@@ -184,10 +184,6 @@ function CrystalDrop({ x, y, delay, len = 18 }: { x: number; y: number; delay: n
 
 function HeroChandelier() {
   const prefersReduced = useReducedMotion();
-  const glowAnim = prefersReduced ? {} : {
-    animate: { opacity: [0.7, 1, 0.7] },
-    transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-  };
 
   const drops: { x: number; y: number; delay: number; len?: number }[] = [
     // top tier
@@ -233,11 +229,17 @@ function HeroChandelier() {
           </radialGradient>
           <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
             <feGaussianBlur stdDeviation="6" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
           <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
             <feGaussianBlur stdDeviation="14" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
           <linearGradient id="stemGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="oklch(0.72 0.08 88 / 0.8)" />
@@ -254,7 +256,10 @@ function HeroChandelier() {
         <ellipse cx="180" cy="210" rx="170" ry="190" fill="url(#ambient)" />
 
         {/* Ceiling mount */}
-        <motion.g {...(prefersReduced ? {} : glowAnim)}>
+        <motion.g
+          animate={prefersReduced ? {} : { opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
           <rect x="162" y="30" width="36" height="8" rx="4" fill="url(#stemGrad)" />
         </motion.g>
 
