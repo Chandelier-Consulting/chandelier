@@ -1,0 +1,28 @@
+name: Follow-up commit as pranavkannepalli
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  follow-up-commit:
+    # Only run when the pusher is not pranavkannepalli and not the Actions bot (prevents loops)
+    if: github.actor != 'pranavkannepalli' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git as pranavkannepalli
+        run: |
+          git config user.name "pranavkannepalli"
+          git config user.email "pranav.kannepalli@gmail.com"
+
+      - name: Create follow-up commit
+        run: |
+          git commit --allow-empty -m "chore: reviewed ${{ github.sha }} [skip ci]"
+          git push origin main
