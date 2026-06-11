@@ -585,12 +585,12 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = index * 0.08;
-  const end = start + 0.20;
-  const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [40, 0]);
+  const start = index * 0.075;
+  const end = start + 0.24;
+  const opacity = useTransform(progress, [start, end], [0.28, 1]);
+  const y = useTransform(progress, [start, end], [36, 0]);
   const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
-  const scale = useTransform(progress, [start, end], [0.95, 1]);
+  const scale = useTransform(progress, [start, end], [0.96, 1]);
 
   return (
     <motion.article
@@ -696,7 +696,6 @@ export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const glowParallax = useTransform(heroProgress, [0, 1], [0, -60]);
-  const chandelierY = useTransform(heroProgress, [0, 1], [0, -45]);
   const [scrolled, setScrolled] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => setScrolled(latest > 24));
@@ -757,7 +756,7 @@ export default function Home() {
                 </div>
               </Reveal>
             </div>
-            <motion.div className="chandelier-stage" style={{ y: chandelierY }}>
+            <motion.div className="chandelier-stage">
               <div className="halo" />
               <HeroChandelier />
             </motion.div>
