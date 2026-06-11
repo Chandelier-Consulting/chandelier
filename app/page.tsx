@@ -371,41 +371,52 @@ function HeroChandelier() {
       ctx.beginPath(); ctx.ellipse(272,104,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       drawBulb(272,96,4.2);
 
-      // outer ring + tier-1 crystals
-      drawRing(180,205,100,12);
-      t1data.forEach((d,i) => drawCrystal(d.x,205,d.s,a1[i].a,d.s>=1.05));
-
-      // inner ring + tier-2 crystals
-      drawRing(180,258,58,9.5);
-      t2data.forEach((d,i) => drawCrystal(d.x,258,d.s,a2[i].a,d.s>=1.0));
-
-      // bobeche
+      // bobeche — draw before chains so chains appear on top
       ctx.beginPath(); ctx.ellipse(180,190,20,4.5,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       ctx.beginPath(); ctx.ellipse(180,187,16,3,0,0,Math.PI*2); ctx.fillStyle=warm(0.65); ctx.fill();
 
-      // grand pendant
-      const pLen=68;
+      // Suspension chains: bobeche → outer ring (4 chains)
+      ([ [83,231],[123,224],[237,224],[277,231] ] as [number,number][]).forEach(([tx,ty]) => {
+        ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(tx,ty);
+        ctx.strokeStyle=gold(0.40); ctx.lineWidth=0.8; ctx.stroke();
+      });
+      // Suspension chains: bobeche → inner ring (2 chains)
+      ([ [134,296],[226,296] ] as [number,number][]).forEach(([tx,ty]) => {
+        ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(tx,ty);
+        ctx.strokeStyle=gold(0.30); ctx.lineWidth=0.7; ctx.stroke();
+      });
+
+      // outer ring + tier-1 crystals (dropped lower for elegant proportions)
+      drawRing(180,230,100,13);
+      t1data.forEach((d,i) => drawCrystal(d.x,230,d.s,a1[i].a,d.s>=1.05));
+
+      // inner ring + tier-2 crystals
+      drawRing(180,295,58,10);
+      t2data.forEach((d,i) => drawCrystal(d.x,295,d.s,a2[i].a,d.s>=1.0));
+
+      // grand pendant — longer chain for elongated look
+      const pLen=95;
       const px=180+Math.sin(pendS.a)*pLen, py=192+Math.cos(pendS.a)*pLen;
       ctx.beginPath(); ctx.arc(180,192,2.2,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(px,py);
-      ctx.strokeStyle=gold(0.58); ctx.lineWidth=1.1; ctx.stroke();
+      ctx.strokeStyle=gold(0.52); ctx.lineWidth=1.1; ctx.stroke();
       ctx.save();
       ctx.translate(px,py); ctx.rotate(pendS.a);
-      const pw=17,ph=42;
+      const pw=20,ph=52;
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph); ctx.lineTo(-pw,ph*.4); ctx.closePath();
-      ctx.fillStyle="rgba(232,200,70,0.90)"; ctx.fill();
+      ctx.fillStyle="rgba(232,200,70,0.92)"; ctx.fill();
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph*.53); ctx.closePath();
       ctx.fillStyle="rgba(82,58,8,0.46)"; ctx.fill();
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-pw,ph*.4); ctx.lineTo(0,ph*.53); ctx.closePath();
-      ctx.fillStyle="rgba(255,255,255,0.20)"; ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,0.22)"; ctx.fill();
       ctx.beginPath(); ctx.ellipse(-pw*.28,ph*.18,pw*.22,ph*.085,0,0,Math.PI*2);
-      ctx.fillStyle="rgba(255,255,255,0.55)"; ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,0.60)"; ctx.fill();
       ctx.restore();
 
       // central warm glow
-      radGlow(180,205,50,"rgba(228,180,55,0.28)");
-      radGlow(180,190,20,"rgba(245,225,130,0.42)");
-      radGlow(180,190,8,"rgba(255,250,215,0.60)");
+      radGlow(180,230,55,"rgba(228,180,55,0.24)");
+      radGlow(180,190,22,"rgba(245,225,130,0.40)");
+      radGlow(180,190,9,"rgba(255,250,215,0.58)");
 
       // glints
       if (!prefersReduced) {
@@ -413,9 +424,9 @@ function HeroChandelier() {
         drawGlint(312,80, tt*1.4+3.35, 1.05);
         drawGlint(88,92,  tt*1.4+1.55, 0.82);
         drawGlint(272,92, tt*1.4+4.90, 0.82);
-        drawGlint(82,203, tt*1.4+2.50, 0.62);
-        drawGlint(278,203,tt*1.4+5.85, 0.62);
-        drawGlint(px+Math.sin(pendS.a)*ph, py+ph, tt*1.4+7.70, 0.88);
+        drawGlint(82,227, tt*1.4+2.50, 0.62);
+        drawGlint(278,227,tt*1.4+5.85, 0.62);
+        drawGlint(px+Math.sin(pendS.a)*ph, py+ph, tt*1.4+7.70, 0.92);
       }
 
       ctx.restore();
