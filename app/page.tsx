@@ -172,49 +172,43 @@ function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
 function Crystal({ x, ringY, delay, size = 1, bright = false }: {
   x: number; ringY: number; delay: number; size?: number; bright?: boolean;
 }) {
-  const w = 5.2 * size;
-  const h = 10.5 * size;
-  const thread = 8 * size;
+  const w = 5.5 * size, h = 11 * size, thread = 9 * size;
   const ty = ringY + thread;
-  const col = bright ? "oklch(0.94 0.15 82 / 0.95)" : "oklch(0.84 0.10 80 / 0.78)";
+  const col = bright ? "oklch(0.94 0.15 82 / 0.95)" : "oklch(0.83 0.10 80 / 0.80)";
   return (
     <motion.g
-      animate={{ rotate: [-0.7, 0.7, -0.7] }}
-      transition={{ duration: 4 + delay * 0.55, repeat: Infinity, ease: "easeInOut", delay }}
+      animate={{ rotate: [-0.55, 0.55, -0.55] }}
+      transition={{ duration: 4.2 + delay * 0.5, repeat: Infinity, ease: "easeInOut", delay }}
       style={{ originX: `${x}px`, originY: `${ringY}px` }}
     >
+      {/* bead at ring — visually pins the crystal to the rail */}
+      <circle cx={x} cy={ringY} r={2} fill="oklch(0.78 0.10 82 / 0.88)" />
       {/* thread */}
-      <line x1={x} y1={ringY} x2={x} y2={ty} stroke="oklch(0.78 0.09 80 / 0.55)" strokeWidth="0.75" />
-      {/* main facets */}
+      <line x1={x} y1={ringY + 2} x2={x} y2={ty} stroke="oklch(0.76 0.09 80 / 0.68)" strokeWidth="1.0" />
+      {/* diamond body */}
       <polygon points={`${x},${ty} ${x+w},${ty+h*0.40} ${x},${ty+h} ${x-w},${ty+h*0.40}`} fill={col} />
-      {/* shadow facet right */}
-      <polygon points={`${x},${ty} ${x+w},${ty+h*0.40} ${x},${ty+h*0.53}`} fill="oklch(0.48 0.06 80 / 0.45)" />
-      {/* light facet left */}
-      <polygon points={`${x},${ty} ${x-w},${ty+h*0.40} ${x},${ty+h*0.53}`} fill="white" opacity="0.18" />
-      {/* specular glint */}
-      <ellipse cx={x - w*0.28} cy={ty + h*0.19} rx={w*0.20} ry={h*0.085} fill="white" opacity={bright ? 0.65 : 0.42} />
+      <polygon points={`${x},${ty} ${x+w},${ty+h*0.40} ${x},${ty+h*0.53}`} fill="oklch(0.46 0.06 80 / 0.46)" />
+      <polygon points={`${x},${ty} ${x-w},${ty+h*0.40} ${x},${ty+h*0.53}`} fill="white" opacity="0.19" />
+      <ellipse cx={x - w*0.28} cy={ty + h*0.18} rx={w*0.22} ry={h*0.085}
+        fill="white" opacity={bright ? 0.65 : 0.42} />
     </motion.g>
   );
 }
 
-/* Lens-flare glint that appears near light sources */
 function Glint({ x, y, delay, scale = 1 }: { x: number; y: number; delay: number; scale?: number }) {
-  const s = scale;
+  const r = scale;
   return (
     <motion.g
       initial={{ opacity: 0 }}
-      animate={{ opacity: [0, 0.95, 0], rotate: [0, 15, 0] }}
+      animate={{ opacity: [0, 0.92, 0] }}
       transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay }}
       style={{ originX: `${x}px`, originY: `${y}px` }}
     >
-      {/* long cross rays */}
-      <line x1={x} y1={y - 14*s} x2={x} y2={y + 14*s} stroke="oklch(0.98 0.10 82)" strokeWidth={1.0*s} strokeLinecap="round" opacity="0.9" />
-      <line x1={x - 14*s} y1={y} x2={x + 14*s} y2={y} stroke="oklch(0.98 0.10 82)" strokeWidth={1.0*s} strokeLinecap="round" opacity="0.9" />
-      {/* short diagonal rays */}
-      <line x1={x - 7*s} y1={y - 7*s} x2={x + 7*s} y2={y + 7*s} stroke="oklch(0.96 0.12 82)" strokeWidth={0.65*s} strokeLinecap="round" opacity="0.55" />
-      <line x1={x + 7*s} y1={y - 7*s} x2={x - 7*s} y2={y + 7*s} stroke="oklch(0.96 0.12 82)" strokeWidth={0.65*s} strokeLinecap="round" opacity="0.55" />
-      {/* center dot */}
-      <circle cx={x} cy={y} r={1.8*s} fill="white" opacity="0.9" />
+      <line x1={x} y1={y-12*r} x2={x} y2={y+12*r} stroke="oklch(0.99 0.08 82)" strokeWidth={0.9*r} strokeLinecap="round" />
+      <line x1={x-12*r} y1={y} x2={x+12*r} y2={y} stroke="oklch(0.99 0.08 82)" strokeWidth={0.9*r} strokeLinecap="round" />
+      <line x1={x-6*r} y1={y-6*r} x2={x+6*r} y2={y+6*r} stroke="oklch(0.97 0.10 82)" strokeWidth={0.6*r} strokeLinecap="round" opacity="0.55" />
+      <line x1={x+6*r} y1={y-6*r} x2={x-6*r} y2={y+6*r} stroke="oklch(0.97 0.10 82)" strokeWidth={0.6*r} strokeLinecap="round" opacity="0.55" />
+      <circle cx={x} cy={y} r={1.6*r} fill="white" opacity="0.9" />
     </motion.g>
   );
 }
@@ -222,35 +216,39 @@ function Glint({ x, y, delay, scale = 1 }: { x: number; y: number; delay: number
 function HeroChandelier() {
   const prefersReduced = useReducedMotion();
 
-  // outer ring crystals — hang from ring at y=220, spaced across rx=104
+  // tier 1 — outer ring ringY=205, spaced x across visible ring arc
   const tier1: { x: number; delay: number; size: number }[] = [
-    { x: 78,  delay: 0,    size: 1.10 },
-    { x: 100, delay: 0.28, size: 0.88 },
-    { x: 122, delay: 0.55, size: 0.95 },
-    { x: 144, delay: 0.80, size: 0.82 },
-    { x: 162, delay: 1.05, size: 0.90 },
-    { x: 180, delay: 1.30, size: 1.15 },
-    { x: 198, delay: 1.05, size: 0.90 },
-    { x: 216, delay: 0.80, size: 0.82 },
-    { x: 238, delay: 0.55, size: 0.95 },
-    { x: 260, delay: 0.28, size: 0.88 },
-    { x: 282, delay: 0,    size: 1.10 },
+    { x: 82,  delay: 0,    size: 1.10 },
+    { x: 103, delay: 0.28, size: 0.87 },
+    { x: 124, delay: 0.52, size: 0.94 },
+    { x: 145, delay: 0.75, size: 0.83 },
+    { x: 162, delay: 0.96, size: 0.90 },
+    { x: 180, delay: 1.18, size: 1.13 },
+    { x: 198, delay: 0.96, size: 0.90 },
+    { x: 215, delay: 0.75, size: 0.83 },
+    { x: 236, delay: 0.52, size: 0.94 },
+    { x: 257, delay: 0.28, size: 0.87 },
+    { x: 278, delay: 0,    size: 1.10 },
   ];
 
-  // inner ring crystals — hang from ring at y=280
+  // tier 2 — inner ring ringY=258
   const tier2: { x: number; delay: number; size: number }[] = [
-    { x: 122, delay: 0.18, size: 0.82 },
-    { x: 143, delay: 0.45, size: 0.95 },
-    { x: 163, delay: 0.70, size: 0.88 },
-    { x: 180, delay: 0.95, size: 1.05 },
-    { x: 197, delay: 0.70, size: 0.88 },
-    { x: 217, delay: 0.45, size: 0.95 },
-    { x: 238, delay: 0.18, size: 0.82 },
+    { x: 126, delay: 0.22, size: 0.82 },
+    { x: 146, delay: 0.46, size: 0.93 },
+    { x: 164, delay: 0.68, size: 0.87 },
+    { x: 180, delay: 0.90, size: 1.03 },
+    { x: 196, delay: 0.68, size: 0.87 },
+    { x: 214, delay: 0.46, size: 0.93 },
+    { x: 234, delay: 0.22, size: 0.82 },
   ];
+
+  // solid arm color — no gradients, guaranteed visible
+  const arm = "oklch(0.76 0.10 82 / 0.92)";
+  const armHi = "oklch(0.93 0.13 82 / 0.26)";
 
   return (
     <figure className="hero-chandelier" aria-label="Animated crystal chandelier">
-      <svg viewBox="0 0 360 500" xmlns="http://www.w3.org/2000/svg" className="chandelier-svg" aria-hidden="true">
+      <svg viewBox="0 0 360 490" xmlns="http://www.w3.org/2000/svg" className="chandelier-svg" aria-hidden="true">
         <defs>
           <radialGradient id="ch-amb" cx="50%" cy="48%" r="52%">
             <stop offset="0%"   stopColor="oklch(0.90 0.14 78)" stopOpacity="0.20" />
@@ -262,190 +260,189 @@ function HeroChandelier() {
             <stop offset="100%" stopColor="oklch(0.60 0.10 60)" stopOpacity="0" />
           </radialGradient>
           <linearGradient id="ch-stem" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="oklch(0.80 0.11 82)" stopOpacity="0.95" />
+            <stop offset="0%" stopColor="oklch(0.80 0.11 82)" stopOpacity="0.95" />
             <stop offset="100%" stopColor="oklch(0.58 0.07 80)" stopOpacity="0.55" />
           </linearGradient>
-          <linearGradient id="ch-al" x1="1" y1="0" x2="0" y2="0.6">
-            <stop offset="0%"   stopColor="oklch(0.82 0.12 82 / 0.95)" />
-            <stop offset="100%" stopColor="oklch(0.62 0.08 80 / 0.65)" />
-          </linearGradient>
-          <linearGradient id="ch-ar" x1="0" y1="0" x2="1" y2="0.6">
-            <stop offset="0%"   stopColor="oklch(0.82 0.12 82 / 0.95)" />
-            <stop offset="100%" stopColor="oklch(0.62 0.08 80 / 0.65)" />
-          </linearGradient>
           <linearGradient id="ch-body" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="oklch(0.75 0.11 82 / 0.95)" />
-            <stop offset="100%" stopColor="oklch(0.55 0.07 80 / 0.60)" />
+            <stop offset="0%" stopColor="oklch(0.75 0.11 82)" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="oklch(0.55 0.07 80)" stopOpacity="0.62" />
           </linearGradient>
           <filter id="ch-g" x="-55%" y="-55%" width="210%" height="210%">
-            <feGaussianBlur stdDeviation="7" result="b" />
-            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+            <feGaussianBlur stdDeviation="6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
           <filter id="ch-sg" x="-90%" y="-90%" width="280%" height="280%">
-            <feGaussianBlur stdDeviation="20" result="b" />
-            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+            <feGaussianBlur stdDeviation="18" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
           <filter id="ch-xg" x="-130%" y="-130%" width="360%" height="360%">
-            <feGaussianBlur stdDeviation="30" />
+            <feGaussianBlur stdDeviation="28" />
           </filter>
         </defs>
 
-        {/* ambient wash */}
-        <ellipse cx="180" cy="270" rx="175" ry="215" fill="url(#ch-amb)" />
+        <ellipse cx="180" cy="270" rx="175" ry="210" fill="url(#ch-amb)" />
 
-        {/* ── entire chandelier sways as one unit ── */}
         <motion.g
-          animate={prefersReduced ? {} : { rotate: [-0.5, 0.5, -0.5] }}
+          animate={prefersReduced ? {} : { rotate: [-0.45, 0.45, -0.45] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          style={{ originX: "180px", originY: "18px" }}
+          style={{ originX: "180px", originY: "20px" }}
         >
           {/* ceiling rose */}
           <ellipse cx="180" cy="22" rx="26" ry="5.5" fill="url(#ch-stem)" />
-          <ellipse cx="180" cy="19" rx="18" ry="3.5" fill="oklch(0.84 0.12 82 / 0.55)" />
+          <ellipse cx="180" cy="19" rx="18" ry="3.5" fill="oklch(0.84 0.12 82 / 0.50)" />
 
-          {/* main suspension rod */}
-          <rect x="178" y="27" width="4" height="62" rx="2" fill="url(#ch-stem)" />
-          {/* small decorative collar on rod */}
-          <ellipse cx="180" cy="55" rx="7" ry="3" fill="oklch(0.75 0.10 82 / 0.8)" />
+          {/* suspension rod */}
+          <rect x="178" y="27" width="4" height="55" rx="2" fill="url(#ch-stem)" />
 
-          {/* ── Crown canopy — wide decorative disc ── */}
-          <ellipse cx="180" cy="96"  rx="54" ry="12"  fill="oklch(0.60 0.08 80 / 0.92)" />
-          <ellipse cx="180" cy="93"  rx="52" ry="10"  fill="oklch(0.70 0.10 80 / 0.85)" />
-          <ellipse cx="180" cy="90"  rx="44" ry="8"   fill="oklch(0.78 0.11 82 / 0.70)" />
-          <ellipse cx="180" cy="88"  rx="30" ry="5.5" fill="oklch(0.86 0.13 82 / 0.55)" />
-          <ellipse cx="180" cy="94"  rx="52" ry="10"  fill="none" stroke="oklch(0.88 0.14 82 / 0.38)" strokeWidth="0.9" />
+          {/* crown canopy */}
+          <ellipse cx="180" cy="87" rx="50" ry="10"  fill="oklch(0.60 0.08 80 / 0.92)" />
+          <ellipse cx="180" cy="84" rx="48" ry="8.5" fill="oklch(0.70 0.10 80 / 0.86)" />
+          <ellipse cx="180" cy="81" rx="38" ry="6.5" fill="oklch(0.78 0.11 82 / 0.70)" />
+          <ellipse cx="180" cy="79" rx="24" ry="4.5" fill="oklch(0.86 0.13 82 / 0.55)" />
+          <ellipse cx="180" cy="85" rx="48" ry="8.5" fill="none"
+            stroke="oklch(0.88 0.13 82 / 0.42)" strokeWidth="1.0" />
 
-          {/* ── Arms sweep OUTWARD from crown, curl UP elegantly at tips ── */}
-          {/* Outer left arm: from crown, sweeps out then curves upward */}
-          <path d="M172 92 C148 90 108 82 76 70 C60 64 50 52 54 42"
-            stroke="url(#ch-al)" strokeWidth="3.8" fill="none" strokeLinecap="round" />
-          <path d="M172 92 C148 90 108 82 76 70 C60 64 50 52 54 42"
-            stroke="oklch(0.94 0.14 82 / 0.22)" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-          {/* Outer right arm */}
-          <path d="M188 92 C212 90 252 82 284 70 C300 64 310 52 306 42"
-            stroke="url(#ch-ar)" strokeWidth="3.8" fill="none" strokeLinecap="round" />
-          <path d="M188 92 C212 90 252 82 284 70 C300 64 310 52 306 42"
-            stroke="oklch(0.94 0.14 82 / 0.22)" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+          {/* body column — y=87 to y=185 */}
+          <path d="M171 87 L168 182 Q180 189 192 182 L189 87 Z" fill="url(#ch-body)" />
+          <path d="M177 87 L175 182 Q180 187 185 182 L183 87 Z"
+            fill="oklch(0.90 0.12 82 / 0.11)" />
+          <ellipse cx="180" cy="136" rx="13" ry="3"   fill="oklch(0.72 0.10 82 / 0.90)" />
+          <ellipse cx="180" cy="134" rx="11" ry="2.2" fill="oklch(0.83 0.12 82 / 0.65)" />
 
-          {/* Inner left arm */}
-          <path d="M174 93 C158 92 128 86 104 76 C90 70 84 60 87 52"
-            stroke="url(#ch-al)" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          <path d="M174 93 C158 92 128 86 104 76 C90 70 84 60 87 52"
-            stroke="oklch(0.94 0.14 82 / 0.18)" strokeWidth="1.0" fill="none" strokeLinecap="round" />
-          {/* Inner right arm */}
-          <path d="M186 93 C202 92 232 86 256 76 C270 70 276 60 273 52"
-            stroke="url(#ch-ar)" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          <path d="M186 93 C202 92 232 86 256 76 C270 70 276 60 273 52"
-            stroke="oklch(0.94 0.14 82 / 0.18)" strokeWidth="1.0" fill="none" strokeLinecap="round" />
+          {/* ── ARMS — branch from body at y=108, mostly horizontal, tip curls up ──
+               Using solid strokes only (no url() gradients) so they always render. */}
 
-          {/* Arm tip socket cups — small upward cups where bulb sits */}
-          {/* outer tips */}
-          {([
-            [54, 42], [306, 42]
-          ] as [number, number][]).map(([bx, by], i) => (
-            <g key={i}>
-              {/* socket */}
-              <ellipse cx={bx} cy={by + 3} rx="5.5" ry="2.5" fill="oklch(0.68 0.09 80 / 0.9)" />
-              <ellipse cx={bx} cy={by + 1} rx="4.5" ry="2" fill="oklch(0.78 0.11 82 / 0.7)" />
-              {/* bulb glow */}
-              <g filter="url(#ch-g)">
-                <circle cx={bx} cy={by - 4} r="12" fill="url(#ch-bulb)" opacity="0.55" />
-                <circle cx={bx} cy={by - 4} r="5.5" fill="oklch(0.99 0.08 82)" />
-                <circle cx={bx - 1.5} cy={by - 5.5} r="1.8" fill="white" opacity="0.75" />
-              </g>
-            </g>
-          ))}
-          {/* inner tips */}
-          {([
-            [87, 52], [273, 52]
-          ] as [number, number][]).map(([bx, by], i) => (
-            <g key={i}>
-              <ellipse cx={bx} cy={by + 2.5} rx="4.5" ry="2" fill="oklch(0.68 0.09 80 / 0.9)" />
-              <g filter="url(#ch-g)">
-                <circle cx={bx} cy={by - 3} r="9" fill="url(#ch-bulb)" opacity="0.48" />
-                <circle cx={bx} cy={by - 3} r="4" fill="oklch(0.99 0.08 82)" />
-              </g>
-            </g>
-          ))}
+          {/* outer left: M172 108 → mostly horizontal → tip curls UP to (55,96) */}
+          <path d="M172 108 C145 107 105 105 75 109 C59 112 51 104 55 96"
+            fill="none" stroke={arm} strokeWidth="3.8" strokeLinecap="round" />
+          <path d="M172 108 C145 107 105 105 75 109 C59 112 51 104 55 96"
+            fill="none" stroke={armHi} strokeWidth="1.5" strokeLinecap="round" />
 
-          {/* ── Body: tapered column connecting crown to bobeche ── */}
-          {/* upper band at crown base */}
-          <rect x="170" y="96" width="20" height="4" rx="2" fill="oklch(0.68 0.09 80 / 0.85)" />
-          {/* column shaft */}
-          <path d="M172 100 L169 200 Q180 207 191 200 L188 100 Z" fill="url(#ch-body)" />
-          {/* column highlight */}
-          <path d="M177 100 L175 200 Q180 205 185 200 L183 100 Z" fill="oklch(0.88 0.12 82 / 0.12)" />
-          {/* decorative mid band */}
-          <ellipse cx="180" cy="152" rx="14" ry="3.5" fill="oklch(0.74 0.10 82 / 0.8)" />
-          <ellipse cx="180" cy="150" rx="12" ry="2.5" fill="oklch(0.84 0.12 82 / 0.6)" />
+          {/* outer right: symmetric */}
+          <path d="M188 108 C215 107 255 105 285 109 C301 112 309 104 305 96"
+            fill="none" stroke={arm} strokeWidth="3.8" strokeLinecap="round" />
+          <path d="M188 108 C215 107 255 105 285 109 C301 112 309 104 305 96"
+            fill="none" stroke={armHi} strokeWidth="1.5" strokeLinecap="round" />
 
-          {/* ── Outer ring rail (tier 1) ── drawn BEFORE crystals so threads read as hanging from it */}
-          <ellipse cx="180" cy="220" rx="106" ry="13" fill="oklch(0.13 0.01 250 / 0.6)" />
-          <ellipse cx="180" cy="220" rx="107" ry="13.5" fill="none" stroke="oklch(0.80 0.12 82 / 0.72)" strokeWidth="2.2" />
-          <ellipse cx="180" cy="217" rx="105" ry="11" fill="none" stroke="oklch(0.90 0.14 82 / 0.28)" strokeWidth="0.9" />
+          {/* inner left */}
+          <path d="M173 110 C155 109 122 108 98 111 C85 113 79 107 83 100"
+            fill="none" stroke={arm} strokeWidth="2.7" strokeLinecap="round" />
+          <path d="M173 110 C155 109 122 108 98 111 C85 113 79 107 83 100"
+            fill="none" stroke={armHi} strokeWidth="1.1" strokeLinecap="round" />
 
-          {/* ── Tier 1 crystals hang from outer ring at y=220 ── */}
+          {/* inner right */}
+          <path d="M187 110 C205 109 238 108 262 111 C275 113 281 107 277 100"
+            fill="none" stroke={arm} strokeWidth="2.7" strokeLinecap="round" />
+          <path d="M187 110 C205 109 238 108 262 111 C275 113 281 107 277 100"
+            fill="none" stroke={armHi} strokeWidth="1.1" strokeLinecap="round" />
+
+          {/* arm tip sockets + bulbs */}
+          {/* outer left (55, 96) */}
+          <ellipse cx="55" cy="99" rx="5.5" ry="2.2" fill="oklch(0.65 0.09 80 / 0.92)" />
+          <g filter="url(#ch-g)">
+            <circle cx="55" cy="91" r="12" fill="url(#ch-bulb)" opacity="0.55" />
+            <circle cx="55" cy="91" r="5.5" fill="oklch(0.99 0.08 82)" />
+            <circle cx="53.5" cy="89.5" r="1.7" fill="white" opacity="0.78" />
+          </g>
+          {/* outer right (305, 96) */}
+          <ellipse cx="305" cy="99" rx="5.5" ry="2.2" fill="oklch(0.65 0.09 80 / 0.92)" />
+          <g filter="url(#ch-g)">
+            <circle cx="305" cy="91" r="12" fill="url(#ch-bulb)" opacity="0.55" />
+            <circle cx="305" cy="91" r="5.5" fill="oklch(0.99 0.08 82)" />
+            <circle cx="303.5" cy="89.5" r="1.7" fill="white" opacity="0.78" />
+          </g>
+          {/* inner left (83, 100) */}
+          <ellipse cx="83" cy="103" rx="4.5" ry="1.8" fill="oklch(0.65 0.09 80 / 0.90)" />
+          <g filter="url(#ch-g)">
+            <circle cx="83" cy="96" r="9" fill="url(#ch-bulb)" opacity="0.50" />
+            <circle cx="83" cy="96" r="4" fill="oklch(0.99 0.08 82)" />
+          </g>
+          {/* inner right (277, 100) */}
+          <ellipse cx="277" cy="103" rx="4.5" ry="1.8" fill="oklch(0.65 0.09 80 / 0.90)" />
+          <g filter="url(#ch-g)">
+            <circle cx="277" cy="96" r="9" fill="url(#ch-bulb)" opacity="0.50" />
+            <circle cx="277" cy="96" r="4" fill="oklch(0.99 0.08 82)" />
+          </g>
+
+          {/* ── OUTER ring rail — drawn BEFORE tier-1 crystals ── */}
+          <ellipse cx="180" cy="205" rx="100" ry="12"
+            fill="oklch(0.14 0.01 250 / 0.62)" />
+          <ellipse cx="180" cy="205" rx="101" ry="12.5"
+            fill="none" stroke="oklch(0.80 0.11 82 / 0.75)" strokeWidth="2.2" />
+          <ellipse cx="180" cy="202" rx="99" ry="10.5"
+            fill="none" stroke="oklch(0.90 0.13 82 / 0.30)" strokeWidth="0.9" />
+
+          {/* tier 1 — ringY=205 */}
           {tier1.map((d, i) => (
-            <Crystal key={`t1-${i}`} x={d.x} ringY={220} delay={d.delay} size={d.size} bright={d.size >= 1.05} />
+            <Crystal key={`t1-${i}`} x={d.x} ringY={205} delay={d.delay} size={d.size} bright={d.size >= 1.05} />
           ))}
 
-          {/* ── Inner ring rail (tier 2) ── */}
-          <ellipse cx="180" cy="280" rx="62" ry="10" fill="oklch(0.13 0.01 250 / 0.55)" />
-          <ellipse cx="180" cy="280" rx="63" ry="10.5" fill="none" stroke="oklch(0.80 0.12 82 / 0.68)" strokeWidth="2.0" />
-          <ellipse cx="180" cy="277" rx="61" ry="8.5" fill="none" stroke="oklch(0.90 0.14 82 / 0.25)" strokeWidth="0.8" />
+          {/* ── INNER ring rail — drawn BEFORE tier-2 crystals ── */}
+          <ellipse cx="180" cy="258" rx="58" ry="9.5"
+            fill="oklch(0.14 0.01 250 / 0.58)" />
+          <ellipse cx="180" cy="258" rx="59" ry="10"
+            fill="none" stroke="oklch(0.80 0.11 82 / 0.70)" strokeWidth="2.0" />
+          <ellipse cx="180" cy="255" rx="57" ry="8"
+            fill="none" stroke="oklch(0.90 0.13 82 / 0.26)" strokeWidth="0.8" />
 
-          {/* ── Tier 2 crystals hang from inner ring at y=280 ── */}
+          {/* tier 2 — ringY=258 */}
           {tier2.map((d, i) => (
-            <Crystal key={`t2-${i}`} x={d.x} ringY={280} delay={d.delay} size={d.size} bright={d.size >= 1.0} />
+            <Crystal key={`t2-${i}`} x={d.x} ringY={258} delay={d.delay} size={d.size} bright={d.size >= 1.0} />
           ))}
 
-          {/* ── Bobeche (bottom cap) ── */}
-          <ellipse cx="180" cy="208" rx="22" ry="5"   fill="oklch(0.70 0.10 82 / 0.88)" />
-          <ellipse cx="180" cy="205" rx="18" ry="3.5" fill="oklch(0.82 0.12 82 / 0.65)" />
+          {/* bobeche cap at body bottom */}
+          <ellipse cx="180" cy="190" rx="20" ry="4.5" fill="oklch(0.68 0.09 82 / 0.90)" />
+          <ellipse cx="180" cy="187" rx="16" ry="3"   fill="oklch(0.80 0.11 82 / 0.65)" />
 
-          {/* ── Grand central pendant (hangs from bobeche) ── */}
+          {/* grand central pendant */}
           <motion.g
-            animate={prefersReduced ? {} : { rotate: [-0.6, 0.6, -0.6] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-            style={{ originX: "180px", originY: "208px" }}
+            animate={prefersReduced ? {} : { rotate: [-0.5, 0.5, -0.5] }}
+            transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
+            style={{ originX: "180px", originY: "190px" }}
           >
-            <line x1="180" y1="208" x2="180" y2="295" stroke="oklch(0.76 0.10 80 / 0.55)" strokeWidth="1.1" />
-            {/* pendant crystal — larger, very bright */}
+            <circle cx="180" cy="190" r="2.2" fill="oklch(0.76 0.10 82 / 0.90)" />
+            <line x1="180" y1="192" x2="180" y2="260"
+              stroke="oklch(0.74 0.09 80 / 0.60)" strokeWidth="1.1" />
             <g filter="url(#ch-g)">
-              <polygon points="180,295 196,322 180,362 164,322" fill="oklch(0.94 0.16 84 / 0.90)" />
-              <polygon points="180,295 196,322 180,335" fill="oklch(0.52 0.07 80 / 0.45)" />
-              <polygon points="180,295 164,322 180,335" fill="white" opacity="0.22" />
-              <ellipse cx="175" cy="310" rx="5" ry="9" fill="white" opacity="0.30" />
-              <ellipse cx="177" cy="303" rx="2.5" ry="4.5" fill="white" opacity="0.55" />
+              <polygon points="180,260 197,290 180,332 163,290" fill="oklch(0.93 0.16 83 / 0.90)" />
+              <polygon points="180,260 197,290 180,302" fill="oklch(0.50 0.07 80 / 0.46)" />
+              <polygon points="180,260 163,290 180,302" fill="white" opacity="0.21" />
+              <ellipse cx="175" cy="276" rx="5.5" ry="10" fill="white" opacity="0.27" />
+              <ellipse cx="177" cy="268" rx="2.5" ry="4.5" fill="white" opacity="0.58" />
             </g>
           </motion.g>
 
-          {/* ── Central warm light source ── */}
+          {/* central warm light */}
           <g filter="url(#ch-xg)">
-            <circle cx="180" cy="210" r="28" fill="oklch(0.92 0.16 75)" opacity="0.55" />
+            <circle cx="180" cy="205" r="28" fill="oklch(0.92 0.16 75)" opacity="0.52" />
           </g>
           <g filter="url(#ch-sg)">
-            <circle cx="180" cy="210" r="10" fill="oklch(0.99 0.08 82)" opacity="0.65" />
+            <circle cx="180" cy="190" r="9" fill="oklch(0.99 0.08 82)" opacity="0.58" />
           </g>
 
-          {/* ── Lens-flare glints near bulbs and bright crystals ── */}
+          {/* glints at bulb tips */}
           {!prefersReduced && (<>
-            <Glint x={54}  y={38}  delay={0}    scale={1.1} />
-            <Glint x={306} y={38}  delay={0.9}  scale={1.1} />
-            <Glint x={87}  y={49}  delay={0.4}  scale={0.85} />
-            <Glint x={273} y={49}  delay={1.3}  scale={0.85} />
-            <Glint x={78}  y={218} delay={0.6}  scale={0.7} />
-            <Glint x={282} y={218} delay={1.5}  scale={0.7} />
-            <Glint x={180} y={358} delay={2.0}  scale={0.9} />
+            <Glint x={55}  y={87}  delay={0}    scale={1.05} />
+            <Glint x={305} y={87}  delay={0.95} scale={1.05} />
+            <Glint x={83}  y={92}  delay={0.42} scale={0.82} />
+            <Glint x={277} y={92}  delay={1.37} scale={0.82} />
+            <Glint x={82}  y={203} delay={0.68} scale={0.62} />
+            <Glint x={278} y={203} delay={1.62} scale={0.62} />
+            <Glint x={180} y={329} delay={2.1}  scale={0.88} />
           </>)}
 
         </motion.g>
 
-        {/* soft floor glow */}
         <motion.ellipse
-          cx="180" cy="490" rx="88" ry="9"
+          cx="180" cy="480" rx="85" ry="8"
           fill="oklch(0.86 0.14 80 / 0.07)"
-          animate={prefersReduced ? {} : { opacity: [0.4, 0.85, 0.4], rx: [80, 94, 80] } as never}
+          animate={prefersReduced ? {} : { opacity: [0.4, 0.85, 0.4], rx: [78, 92, 78] } as never}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
         />
       </svg>
