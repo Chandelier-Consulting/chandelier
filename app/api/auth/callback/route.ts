@@ -4,16 +4,17 @@ import {
   ADMIN_ACCESS_COOKIE,
   ADMIN_REFRESH_COOKIE,
   adminCookieOptions,
+  buildAdminRedirectUrl,
   describeAdminAccess,
   getPublicSupabase,
 } from "@/lib/admin-auth";
-import { adminEmails, env } from "@/lib/env";
+import { adminEmails } from "@/lib/env";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const next = url.searchParams.get("next") ?? "/admin";
-  const loginUrl = new URL("/admin/login", env.NEXT_PUBLIC_APP_URL);
+  const loginUrl = new URL(buildAdminRedirectUrl(request, "/admin/login"));
 
   if (!code) {
     loginUrl.searchParams.set("error", "Missing Supabase auth code.");
@@ -49,5 +50,5 @@ export async function GET(request: Request) {
     maxAge: 60 * 60 * 24 * 30,
   });
 
-  return NextResponse.redirect(new URL(next.startsWith("/") ? next : "/admin", env.NEXT_PUBLIC_APP_URL));
+  return NextResponse.redirect(buildAdminRedirectUrl(request, next.startsWith("/") ? next : "/admin"));
 }

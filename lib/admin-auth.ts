@@ -61,6 +61,52 @@ export async function describeAdminAccess(
   return { ok: true, email, user: data.user };
 }
 
+export function isAdminRequestAllowed(accessToken: string | undefined, allowlist = adminEmails()) {
+  return allowlist.length === 0 || Boolean(accessToken);
+}
+
+export function buildAdminRedirectUrl(request: Request, path: string) {
+  const url = new URL(request.url);
+  return new URL(path, url.origin).toString();
+}
+
+export function buildAdminRedirectUrlFromHeaders(headersList: Headers, path: string) {
+  const host = headersList.get("x-forwarded-host") ?? headersList.get("host");
+  const proto = headersList.get("x-forwarded-proto") ?? "https";
+  const origin = headersList.get("origin") ?? (host ? `${proto}://${host}` : env.NEXT_PUBLIC_APP_URL);
+  return new URL(path, origin).toString();
+}
+
+export async function requireAdminAccessForRequest(request: Request) {
+  const allowlist = adminEmails();
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const accessToken = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${ADMIN_ACCESS_COOKIE}=`))
+    ?.slice(ADMIN_ACCESS_COOKIE.length + 1);
+
+  if (!isAdminRequestAllowed(accessToken, allowlist)) {
+    return { ok: false as const, status: 401, error: "Admin access requires a Supabase-authenticated allowlisted email." };
+  }
+
+  if (allowlist.length === 0) {
+    return { ok: true as const };
+  }
+
+  const { client, missing } = getPublicSupabase();
+  if (!client) {
+    return { ok: false as const, status: 503, error: "Supabase auth is not configured.", missing };
+  }
+
+  const access = await describeAdminAccess(client, accessToken, allowlist);
+  if (!access.ok) {
+    return { ok: false as const, status: 401, error: "Admin access requires a Supabase-authenticated allowlisted email." };
+  }
+
+  return { ok: true as const };
+}
+
 export function adminCookieOptions() {
   return {
     httpOnly: true,

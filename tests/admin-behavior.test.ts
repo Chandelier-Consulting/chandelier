@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { describeAdminAccess } from "@/lib/admin-auth";
+import { buildAdminRedirectUrl, describeAdminAccess, isAdminRequestAllowed } from "@/lib/admin-auth";
 import {
+  adminFormDefinitions,
   buildDashboardSummary,
+  buildMutationPayload,
   buildSectionRows,
   reportDefinitions,
   toCsv,
@@ -52,7 +54,49 @@ function expectsCsvContract() {
   csv.includes('"Rivera, Bakery"') satisfies boolean;
 }
 
+function expectsAdminFormDefinitions() {
+  adminFormDefinitions.leads?.fields[0] satisfies { name: string; label: string } | undefined;
+  adminFormDefinitions.expenses?.fields.find((field) => field.name === "tax_deductible")?.type satisfies
+    | string
+    | undefined;
+  adminFormDefinitions.payouts?.table satisfies string | undefined;
+}
+
+function expectsMutationPayloadContract() {
+  const payload = buildMutationPayload("expenses", new Map<string, FormDataEntryValue | FormDataEntryValue[]>([
+    ["business_purpose", "Production hosting"],
+    ["category", "hosting"],
+    ["amount_cents", "129.50"],
+    ["tax_deductible", "on"],
+    ["reimbursable", ""],
+    ["spent_at", "2026-06-11"],
+  ]));
+
+  payload.amount_cents satisfies unknown;
+  payload.tax_deductible satisfies unknown;
+  payload.reimbursable satisfies unknown;
+}
+
+function expectsAdminUrlAndApiAuthContracts() {
+  const redirectUrl = buildAdminRedirectUrl(
+    new Request("https://preview.chandelierconsulting.dev/admin/login"),
+    "/api/auth/callback?next=/admin",
+  );
+  if (redirectUrl !== "https://preview.chandelierconsulting.dev/api/auth/callback?next=/admin") {
+    throw new Error("admin redirect URL should use the incoming request origin");
+  }
+
+  const allowedWithoutAllowlist = isAdminRequestAllowed(undefined, []);
+  const deniedWithAllowlist = isAdminRequestAllowed(undefined, ["owner@example.com"]);
+
+  allowedWithoutAllowlist satisfies boolean;
+  deniedWithAllowlist satisfies boolean;
+}
+
 void expectsAdminAccessContract;
 void expectsSupabaseDashboardContract;
 void expectsSectionRowsContract;
 void expectsCsvContract;
+void expectsAdminFormDefinitions;
+void expectsMutationPayloadContract;
+void expectsAdminUrlAndApiAuthContracts;
