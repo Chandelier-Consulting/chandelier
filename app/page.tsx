@@ -387,7 +387,7 @@ function HeroChandelier() {
       const r2cx=180,r2cy=322,r2rx=58,r2ry=10;
 
       // Pendant chain drawn BEFORE rings so it threads visibly through their open centers
-      const pLen=160;
+      const pLen=185;
       const px=180+Math.sin(pendS.a)*pLen, py=192+Math.cos(pendS.a)*pLen;
       ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(px,py);
       ctx.strokeStyle=gold(0.46); ctx.lineWidth=1.1; ctx.stroke();
@@ -585,12 +585,12 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = index * 0.115;
-  const end = start + 0.16;
+  const start = index * 0.08;
+  const end = start + 0.20;
   const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [50, 0]);
-  const rotate = useTransform(progress, [start, end], [(index - 1) * 3, 0]);
-  const scale = useTransform(progress, [start, end], [0.94, 1]);
+  const y = useTransform(progress, [start, end], [40, 0]);
+  const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
+  const scale = useTransform(progress, [start, end], [0.95, 1]);
 
   return (
     <motion.article
@@ -696,9 +696,7 @@ export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const glowParallax = useTransform(heroProgress, [0, 1], [0, -60]);
-  const chandelierY = useTransform(heroProgress, [0, 1], [0, -55]);
-  const chandelierRotate = useTransform(heroProgress, [0, 0.5, 1], [0, 1.8, -1.2]);
-  const chandelierScale = useTransform(heroProgress, [0, 1], [1, 0.90]);
+  const chandelierY = useTransform(heroProgress, [0, 1], [0, -45]);
   const [scrolled, setScrolled] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => setScrolled(latest > 24));
@@ -759,7 +757,7 @@ export default function Home() {
                 </div>
               </Reveal>
             </div>
-            <motion.div className="chandelier-stage" style={{ y: chandelierY, rotate: chandelierRotate, scale: chandelierScale }}>
+            <motion.div className="chandelier-stage" style={{ y: chandelierY }}>
               <div className="halo" />
               <HeroChandelier />
             </motion.div>
