@@ -588,9 +588,9 @@ function ServiceCard({
   // Row-based stagger: cards in the same row light up together as you scroll
   const row = Math.floor(index / 3);
   const col = index % 3;
-  const start = row * 0.30 + col * 0.03;
-  const end = start + 0.18;
-  const opacity = useTransform(progress, [start, end], [0.30, 1]);
+  const start = row * 0.28 + col * 0.03 - 0.08;
+  const end = start + 0.16;
+  const opacity = useTransform(progress, [Math.max(0, start), end], [0.30, 1]);
   const y = useTransform(progress, [start, end], [20, 0]);
   const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
   const scale = useTransform(progress, [start, end], [0.97, 1]);

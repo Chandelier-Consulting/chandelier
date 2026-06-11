@@ -793,7 +793,7 @@ h4 {
 .scene-progress {
   position: absolute;
   right: var(--gutter);
-  bottom: 38px;
+  bottom: 12px;
   left: var(--gutter);
   z-index: 3;
   display: none;
