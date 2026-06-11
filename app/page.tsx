@@ -294,10 +294,10 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = index * 0.18;
-  const end = start + 0.34;
+  const start = index * 0.075;
+  const end = start + 0.24;
   const opacity = useTransform(progress, [start, end], [0.28, 1]);
-  const y = useTransform(progress, [start, end], [72, 0]);
+  const y = useTransform(progress, [start, end], [36, 0]);
   const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
   const scale = useTransform(progress, [start, end], [0.96, 1]);
 
