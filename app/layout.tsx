@@ -19,9 +19,35 @@ const monoFont = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chandelier Consulting - We illuminate what's possible",
+  metadataBase: new URL("https://chandelierconsulting.dev"),
+  title: {
+    default: "Chandelier Consulting | Websites, Automations, and Digital Systems",
+    template: "%s | Chandelier Consulting",
+  },
   description:
-    "Chandelier Consulting helps brick-and-mortar businesses modernize with custom websites, agentic AI, and ordering and operations systems.",
+    "Websites, automations, and digital systems for growing businesses.",
+  applicationName: "Chandelier Consulting",
+  authors: [{ name: "Chandelier Consulting" }],
+  creator: "Chandelier Consulting",
+  publisher: "Perceo Inc.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Chandelier Consulting | Websites, Automations, and Digital Systems",
+    description:
+      "Websites, automations, and digital systems for growing businesses.",
+    url: "/",
+    siteName: "Chandelier Consulting",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Chandelier Consulting | Websites, Automations, and Digital Systems",
+    description:
+      "Websites, automations, and digital systems for growing businesses.",
+  },
 };
 
 export default function RootLayout({

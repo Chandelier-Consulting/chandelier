@@ -6,22 +6,23 @@ import {
   useInView,
   useMotionValue,
   useMotionValueEvent,
+  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
 } from "framer-motion";
-import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { ReactNode, useEffect, useId, useRef, useState } from "react";
+import { ContactForm } from "@/components/contact-form";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const services = [
   {
-    number: "01 / 03",
-    title: "Custom Website Builds",
+    number: "01 / 07",
+    title: "Website Development",
     role: "Your storefront, online",
-    copy: "A site that looks like the premium brand you are: fast, searchable, and built to convert browsers into customers.",
-    example:
-      'A family bakery goes from a buried social page to a site that takes pre-orders and ranks first for "fresh croissants near me."',
+    copy: "Fast, searchable websites built to convert browsers into customers.",
     icon: (
       <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
         <rect x="2" y="4" width="22" height="18" rx="2" stroke="currentColor" strokeWidth="1.4" />
@@ -32,12 +33,22 @@ const services = [
     ),
   },
   {
-    number: "02 / 03",
-    title: "Agentic AI Deployment",
+    number: "02 / 07",
+    title: "Custom Software",
+    role: "Built around your workflow",
+    copy: "Purpose-built tools for work that spreadsheets and generic SaaS cannot handle.",
+    icon: (
+      <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <rect x="3" y="4" width="20" height="18" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M8 10l-3 3 3 3M18 10l3 3-3 3M15 8l-4 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    number: "03 / 07",
+    title: "AI Automations",
     role: "Always-on, never off-brand",
-    copy: "AI agents that answer, book, and follow up around the clock, trained on your business and working while you sleep.",
-    example:
-      "A salon's AI agent fields after-hours messages, books open slots, and texts reminders, recovering a dozen bookings a week.",
+    copy: "AI agents for answering, booking, routing, and following up around the clock.",
     icon: (
       <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
         <circle cx="13" cy="13" r="3" stroke="currentColor" strokeWidth="1.4" />
@@ -49,12 +60,22 @@ const services = [
     ),
   },
   {
-    number: "03 / 03",
-    title: "Ordering & Operations",
+    number: "04 / 07",
+    title: "Internal Dashboards",
+    role: "Know what is happening",
+    copy: "Revenue, projects, expenses, and client work in one decision surface.",
+    icon: (
+      <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <rect x="3" y="4" width="20" height="18" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M7 17l4-4 3 3 5-7M7 20h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    number: "05 / 07",
+    title: "Business Systems",
     role: "One system, every register",
-    copy: "Ordering, inventory, and scheduling woven into a single source of truth so the whole operation moves as one.",
-    example:
-      "A three-location restaurant unifies online orders, kitchen tickets, and stock counts, cutting waste and ending spreadsheet scrambles.",
+    copy: "Ordering, inventory, scheduling, and operations tied together.",
     icon: (
       <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
         <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
@@ -64,22 +85,46 @@ const services = [
       </svg>
     ),
   },
+  {
+    number: "06 / 07",
+    title: "SEO & Local Presence",
+    role: "Be findable where buyers look",
+    copy: "Technical SEO, local pages, and search-ready site foundations.",
+    icon: (
+      <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M16 16l6 6M11 7v8M7 11h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    number: "07 / 07",
+    title: "Maintenance Retainers",
+    role: "Keep it improving",
+    copy: "Monthly improvements, reporting, health checks, and content updates.",
+    icon: (
+      <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <path d="M13 3v4M13 19v4M3 13h4M19 13h4M6 6l3 3M17 17l3 3M20 6l-3 3M9 17l-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="13" cy="13" r="4" stroke="currentColor" strokeWidth="1.4" />
+      </svg>
+    ),
+  },
 ];
 
 const stats = [
-  ["Speed", 6, "wk", "From first call to a system that's live and earning."],
-  ["Focus", 1, ":1", "One senior team, your account, never handed to a junior pool."],
-  ["Impact", 3.4, "x", "Average lift in online orders within the first quarter."],
-  ["Reach", 24, "/7", "AI and automation that keep working long after you lock up."],
+  ["Speed", 6, "wk", "Typical launch window."],
+  ["Focus", 1, ":1", "Senior-led delivery."],
+  ["Impact", 3.4, "x", "Online order lift."],
+  ["Reach", 24, "/7", "Always-on systems."],
 ] as const;
 
 const clients = [
-  ["01", "Restaurants & Cafes", "Online ordering, reservations, and kitchens that run on rhythm.", "M8 17h24l-2 15H10L8 17z M14 17c0-4 2.7-7 6-7s6 3 6 7 M16 22v4M24 22v4"],
-  ["02", "Retail & Boutiques", "Storefronts online, inventory in sync, loyalty that brings them back.", "M9 14h22l2 5H7l2-5z M9 19v15h22V19 M17 34v-9h6v9"],
-  ["03", "Service Businesses", "Booking, reminders, and follow-ups that fill the calendar for you.", "M20 20a6 6 0 1 0 0-12 6 6 0 0 0 0 12z M8 33c0-6.6 5.4-11 12-11s12 4.4 12 11"],
-  ["04", "Clinics & Wellness", "Intake, scheduling, and records: calm, compliant, and on time.", "M7 9h26v22H7z M7 16h26M13 23h7 M24 26l3-3 3 3"],
-  ["05", "Specialty & Trades", "Quotes, dispatch, and digital paperwork that keeps crews moving.", "M20 6l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6z"],
-  ["06", "Growing Multi-Location", "One platform across every site, so scale never means chaos.", "M8 32V20M16 32V12M24 32V16M32 32V8"],
+  ["01", "Restaurants & Cafes", "Ordering, reservations, kitchen flow.", "M8 17h24l-2 15H10L8 17z M14 17c0-4 2.7-7 6-7s6 3 6 7 M16 22v4M24 22v4"],
+  ["02", "Retail & Boutiques", "Storefronts, inventory, loyalty.", "M9 14h22l2 5H7l2-5z M9 19v15h22V19 M17 34v-9h6v9"],
+  ["03", "Service Businesses", "Booking, reminders, follow-up.", "M20 20a6 6 0 1 0 0-12 6 6 0 0 0 0 12z M8 33c0-6.6 5.4-11 12-11s12 4.4 12 11"],
+  ["04", "Clinics & Wellness", "Intake, scheduling, records.", "M7 9h26v22H7z M7 16h26M13 23h7 M24 26l3-3 3 3"],
+  ["05", "Specialty & Trades", "Quotes, dispatch, paperwork.", "M20 6l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6z"],
+  ["06", "Multi-Location", "One platform across every site.", "M8 32V20M16 32V12M24 32V16M32 32V8"],
 ] as const;
 
 const fadeUp = {
@@ -88,37 +133,36 @@ const fadeUp = {
 };
 
 function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
+  const id = useId();
+  const goldId = `${id.replace(/:/g, "")}-gold`;
+
   return (
-    <svg className={className} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <svg className={className} viewBox="0 0 96 96" fill="none" aria-hidden="true">
       <defs>
-        <radialGradient id="bead" cx="50%" cy="38%" r="65%">
-          <stop offset="0%" stopColor="#fff0b3" />
-          <stop offset="55%" stopColor="#efc24c" />
-          <stop offset="100%" stopColor="#be8428" />
-        </radialGradient>
-        <linearGradient id="strand" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f2d982" />
-          <stop offset="100%" stopColor="#bd8328" />
+        <linearGradient id={goldId} x1="16" y1="8" x2="78" y2="90" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#fff1af" />
+          <stop offset="0.48" stopColor="#d8aa3f" />
+          <stop offset="1" stopColor="#8f6428" />
         </linearGradient>
-        <filter id="soft-glow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
-      <g stroke="url(#strand)" strokeLinecap="round">
-        <line x1="50" y1="14" x2="50" y2="28" strokeWidth="1.8" />
-        <path d="M30 40 Q50 28 70 40" strokeWidth="1.9" />
-        <line x1="30" y1="40" x2="30" y2="45" strokeWidth="1.6" />
-        <line x1="70" y1="40" x2="70" y2="45" strokeWidth="1.6" />
-        <line x1="50" y1="28" x2="50" y2="56" strokeWidth="1.8" />
+      <rect x="7" y="7" width="82" height="82" rx="24" fill="currentColor" opacity="0.08" />
+      <rect x="10" y="10" width="76" height="76" rx="22" stroke={`url(#${goldId})`} strokeWidth="2" />
+      <path
+        d="M60.5 31.5c-3.9-4.2-8.4-6.3-13.5-6.3-11.3 0-20.2 9.3-20.2 22.8S35.7 70.8 47 70.8c5.4 0 10-2.2 13.8-6.6"
+        stroke={`url(#${goldId})`}
+        strokeLinecap="round"
+        strokeWidth="7"
+      />
+      <g stroke={`url(#${goldId})`} strokeLinecap="round" strokeWidth="2.3">
+        <path d="M48 14v16" />
+        <path d="M36 45c6.8-5.1 17.2-5.1 24 0" />
+        <path d="M40 54c5-3.4 11-3.4 16 0" />
+        <path d="M48 54v13" />
       </g>
-      <g fill="url(#bead)" filter="url(#soft-glow)">
-        <circle cx="30" cy="49" r="4.4" />
-        <circle cx="70" cy="49" r="4.4" />
-        <circle cx="50" cy="60" r="4.8" />
+      <g fill={`url(#${goldId})`}>
+        <circle cx="36" cy="47" r="3.3" />
+        <circle cx="60" cy="47" r="3.3" />
+        <circle cx="48" cy="70" r="4.2" />
       </g>
     </svg>
   );
@@ -126,36 +170,15 @@ function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
 
 function HeroChandelier() {
   return (
-    <svg className="relative z-10 h-[min(64vh,600px)] w-[min(100%,460px)] drop-shadow-[0_30px_80px_oklch(0.82_0.13_88_/_0.25)] max-[980px]:h-[48vh] max-[980px]:max-w-[360px]" viewBox="0 0 360 520" fill="none" aria-label="Abstract chandelier render">
-      <defs>
-        <radialGradient id="heroLight" cx="50%" cy="35%" r="70%">
-          <stop offset="0%" stopColor="#fff7ce" />
-          <stop offset="48%" stopColor="#efc24c" />
-          <stop offset="100%" stopColor="#9f6a22" />
-        </radialGradient>
-        <filter id="heroGlow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <g stroke="#f0ce68" strokeLinecap="round" opacity="0.9">
-        <line x1="180" y1="0" x2="180" y2="96" strokeWidth="1.4" opacity="0.45" />
-        <path d="M88 130 Q180 58 272 130" strokeWidth="2" />
-        <path d="M44 244 Q180 148 316 244" strokeWidth="2.4" />
-        <path d="M120 340 Q180 294 240 340" strokeWidth="1.6" opacity="0.7" />
-        <line x1="180" y1="96" x2="180" y2="378" strokeWidth="1.8" />
-        {[88, 136, 224, 272].map((x) => <line key={x} x1={x} y1={130} x2={x} y2={176} strokeWidth="1.4" opacity="0.85" />)}
-        {[44, 92, 140, 220, 268, 316].map((x) => <line key={x} x1={x} y1={244} x2={x} y2={316} strokeWidth="1.5" opacity="0.8" />)}
-      </g>
-      <g fill="url(#heroLight)" filter="url(#heroGlow)">
-        {[88, 136, 180, 224, 272].map((x, i) => <circle key={x} cx={x} cy={i === 2 ? 146 : 188} r={i === 2 ? 13 : 11} />)}
-        {[44, 92, 140, 180, 220, 268, 316].map((x, i) => <circle key={x} cx={x} cy={i === 3 ? 390 : 326} r={i === 3 ? 16 : 12} />)}
-        <path d="M180 412 q18 26 0 58 q-18 -32 0 -58" />
-      </g>
-    </svg>
+    <figure className="hero-chandelier" aria-label="Crystal chandelier glowing in a grand interior">
+      <Image
+        src="/chandelier-hero.jpg"
+        alt="Crystal chandelier glowing in a warm interior"
+        fill
+        priority
+        sizes="(max-width: 980px) 92vw, 46vw"
+      />
+    </figure>
   );
 }
 
@@ -178,7 +201,7 @@ function SplitHeading({ children, className = "" }: { children: ReactNode[] | Re
   const lines = Array.isArray(children) ? children : [children];
 
   return (
-    <motion.div className={className} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-10% 0px" }}>
+    <motion.span className={className} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-10% 0px" }}>
       {lines.map((line, index) => (
         <span className="block overflow-hidden pb-[0.04em]" key={index}>
           <motion.span
@@ -192,7 +215,7 @@ function SplitHeading({ children, className = "" }: { children: ReactNode[] | Re
           </motion.span>
         </span>
       ))}
-    </motion.div>
+    </motion.span>
   );
 }
 
@@ -218,6 +241,7 @@ function AnimatedNumber({ value }: { value: number }) {
 function ServicesSection() {
   const ref = useRef<HTMLElement>(null);
   const [desktop, setDesktop] = useState(false);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.4 });
   const barScale = useTransform(progress, [0, 1], [0, 1]);
@@ -234,10 +258,12 @@ function ServicesSection() {
   return (
     <section className="section-pad" id="services">
       <div className="wrap">
-        <div className="mb-[clamp(48px,7vw,86px)] max-w-[760px]">
+        <div className="sec-head">
           <Reveal><span className="kicker mb-6">What we build</span></Reveal>
-          <SplitHeading className="h-section">Technology, tailored to<br />the work you already do.</SplitHeading>
-          <Reveal delay={0.08}><p className="lede mt-7">We do not hand you a toolbox and wish you luck. We design, build, and deploy the system, then make sure it earns its keep.</p></Reveal>
+          <h2 className="h-section">
+            <SplitHeading>{["Useful systems.", "Sharp execution."]}</SplitHeading>
+          </h2>
+          <Reveal delay={0.08}><p className="lede mt-7">We design, build, and deploy the tools your business actually uses.</p></Reveal>
         </div>
       </div>
 
@@ -246,11 +272,11 @@ function ServicesSection() {
           <div className="wrap">
             <div className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3">
               {services.map((service, index) => (
-                <ServiceCard key={service.title} index={index} desktop={desktop} progress={progress} service={service} />
+                <ServiceCard key={service.title} index={index} desktop={desktop && !reduceMotion} progress={progress} service={service} />
               ))}
             </div>
           </div>
-          <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: barScale }} /></div>
+          {!reduceMotion && <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: barScale }} /></div>}
         </div>
       </section>
     </section>
@@ -268,25 +294,29 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = 0.06 + index * 0.27;
-  const end = start + 0.36;
-  const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [170, 0]);
-  const rotate = useTransform(progress, [start, end], [(index - 1) * 6, 0]);
-  const scale = useTransform(progress, [start, end], [0.9, 1]);
+  const start = index * 0.18;
+  const end = start + 0.34;
+  const opacity = useTransform(progress, [start, end], [0.28, 1]);
+  const y = useTransform(progress, [start, end], [72, 0]);
+  const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
+  const scale = useTransform(progress, [start, end], [0.96, 1]);
 
   return (
     <motion.article
       className="svc"
       data-card
       style={desktop ? { opacity, y, rotate, scale } : undefined}
+      onPointerMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+        event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`);
+      }}
     >
       <span className="svc-num">{service.number}</span>
       <div className="svc-icon">{service.icon}</div>
       <h3>{service.title}</h3>
       <span className="role">{service.role}</span>
       <p>{service.copy}</p>
-      <p className="eg"><b>For example:</b> {service.example}</p>
     </motion.article>
   );
 }
@@ -296,6 +326,7 @@ function ClientsSection() {
   const rowRef = useRef<HTMLDivElement>(null);
   const [travel, setTravel] = useState(0);
   const [desktop, setDesktop] = useState(false);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.4 });
   const x = useTransform(progress, [0, 1], [0, -travel]);
@@ -308,8 +339,14 @@ function ClientsSection() {
     };
 
     measure();
+    const observer = new ResizeObserver(measure);
+    if (rowRef.current) observer.observe(rowRef.current);
+    if (rowRef.current?.parentElement) observer.observe(rowRef.current.parentElement);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
   useEffect(() => {
@@ -324,16 +361,16 @@ function ClientsSection() {
   return (
     <section className="section-pad" id="clients">
       <section ref={ref} className="cl-track relative">
-        <div className="cl-stage">
-          <div className="mx-auto w-full max-w-[1240px] px-[var(--gutter)]">
+          <div className="cl-stage">
+          <div className="cl-head">
             <Reveal><span className="kicker mb-6">Who we serve</span></Reveal>
-            <SplitHeading className="h-section">Built for the businesses<br />that built the block.</SplitHeading>
+            <h2 className="h-section">
+              <SplitHeading>{["Built for the businesses", "that built the block."]}</SplitHeading>
+            </h2>
           </div>
-          <div className="cl-hint">
-            Drag to explore
-          </div>
+          <div className="cl-hint">{desktop && !reduceMotion ? "Scroll to explore" : "Swipe to explore"}</div>
           <div className="cl-rail">
-            <motion.div ref={rowRef} className="cl-row" style={desktop ? { x } : undefined}>
+            <motion.div ref={rowRef} className="cl-row" style={desktop && !reduceMotion ? { x } : undefined}>
               {clients.map(([num, title, copy, path], index) => (
                 <motion.article
                   className="client"
@@ -355,7 +392,7 @@ function ClientsSection() {
               ))}
             </motion.div>
           </div>
-          <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: progress }} /></div>
+          {!reduceMotion && <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: progress }} /></div>}
         </div>
       </section>
     </section>
@@ -364,7 +401,6 @@ function ClientsSection() {
 
 export default function Home() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [sent, setSent] = useState(false);
   const { scrollY } = useScroll();
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -373,15 +409,6 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => setScrolled(latest > 24));
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSent(true);
-    window.setTimeout(() => {
-      setSent(false);
-      event.currentTarget.reset();
-    }, 2600);
-  };
 
   return (
     <>
@@ -428,10 +455,10 @@ export default function Home() {
               <Reveal><span className="kicker mb-7">Tech consulting for real-world business</span></Reveal>
               <h1 className="h-display">
                 <SplitHeading>
-                  {["We illuminate", <>what&apos;s <em>possible</em></>, "for your business."]}
+                  {["Websites, automations,", "and digital systems for", "growing businesses."]}
                 </SplitHeading>
               </h1>
-              <Reveal delay={0.16}><p className="lede mb-10">Chandelier brings Fortune-500 technology to the businesses on your block: custom builds, agentic AI, and operations systems engineered to make you shine.</p></Reveal>
+              <Reveal delay={0.16}><p className="lede mb-10">Premium websites, AI automations, dashboards, and systems for growing businesses.</p></Reveal>
               <Reveal delay={0.24}>
                 <div className="hero-actions">
                   <a href="#contact" className="btn">Get started <span aria-hidden="true">-&gt;</span></a>
@@ -449,7 +476,7 @@ export default function Home() {
 
         <div className="strip" aria-hidden="true">
           <div className="strip-track">
-            {["Custom Websites", "Agentic AI", "Ordering Systems", "Operations", "Loyalty & CRM", "Analytics", "Custom Websites", "Agentic AI", "Ordering Systems", "Operations", "Loyalty & CRM", "Analytics"].map((item, index) => (
+            {["Websites", "AI", "Ordering", "Ops", "CRM", "Analytics", "Websites", "AI", "Ordering", "Ops", "CRM", "Analytics"].map((item, index) => (
               <span key={`${item}-${index}`}>{item}</span>
             ))}
           </div>
@@ -459,9 +486,11 @@ export default function Home() {
 
         <section className="why section-pad" id="why">
           <div className="wrap">
-            <div className="mb-[clamp(48px,7vw,86px)] max-w-[760px]">
+            <div className="sec-head">
               <Reveal><span className="kicker mb-6">Why Chandelier</span></Reveal>
-              <SplitHeading className="h-section">Big-firm capability.<br />Corner-shop attention.</SplitHeading>
+              <h2 className="h-section">
+                <SplitHeading>{["Senior build quality.", "Local business focus."]}</SplitHeading>
+              </h2>
             </div>
             <div className="stats-grid">
               {stats.map(([tag, value, suffix, label], index) => (
@@ -490,34 +519,15 @@ export default function Home() {
           <div className="wrap cta-inner">
             <Reveal>
               <span className="kicker center">Let&apos;s begin</span>
-              <h2 className="h-section mx-auto mb-[26px] mt-6 max-w-[16ch]">
-                <SplitHeading>Ready to look like the<br />best on the street?</SplitHeading>
+              <h2 className="h-section">
+                <SplitHeading>{["Ready to upgrade", "the operation?"]}</SplitHeading>
               </h2>
-              <p className="lede mx-auto mb-11">Tell us about your business. We&apos;ll show you exactly what we&apos;d build and what it&apos;d be worth.</p>
+              <p className="lede mx-auto mb-11">Tell us what you want to modernize. We&apos;ll map the build.</p>
             </Reveal>
             <Reveal delay={0.08}>
               <div className="contact-card">
                 <span className="kicker">Start a project</span>
-                <form onSubmit={submit}>
-                  <div className="form-grid">
-                    <label className="field">Your name<input name="name" type="text" placeholder="Jordan Rivera" /></label>
-                    <label className="field">Business name<input name="business" type="text" placeholder="Rivera's Bakery" /></label>
-                    <label className="field">Email<input name="email" type="email" placeholder="you@business.com" /></label>
-                    <label className="field">Type of business<select name="type" defaultValue="Restaurant or cafe">
-                      <option>Restaurant or cafe</option>
-                      <option>Retail or boutique</option>
-                      <option>Service business</option>
-                      <option>Clinic or wellness</option>
-                      <option>Specialty or trade</option>
-                      <option>Other</option>
-                    </select></label>
-                    <label className="field full">What would you like to modernize?<textarea name="message" placeholder="We take orders by phone and want a real website with online ordering..." /></label>
-                  </div>
-                  <div className="form-foot">
-                    <p className="note">No obligation. We&apos;ll reply within one business day with a clear, honest plan.</p>
-                    <button type="submit" className="btn full-sub" disabled={sent}>{sent ? "Received - we'll be in touch" : "Send it our way ->"}</button>
-                  </div>
-                </form>
+                <ContactForm />
               </div>
             </Reveal>
           </div>
@@ -544,7 +554,7 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© 2026 Chandelier Consulting - chandelierconsulting.dev</span>
+            <span>© 2026 Chandelier Consulting is operated by Perceo Inc.</span>
             <span>Designed to make local business shine.</span>
           </div>
         </div>
