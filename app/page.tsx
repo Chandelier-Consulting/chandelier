@@ -217,8 +217,9 @@ function HeroChandelier() {
     }
 
     function drawBulb(x: number, y: number, r: number) {
-      radGlow(x, y, r * 4.5, "rgba(235,195,62,0.30)");
-      radGlow(x, y, r * 2,   "rgba(245,222,115,0.72)");
+      radGlow(x, y, r * 7,   "rgba(235,195,62,0.22)");
+      radGlow(x, y, r * 3.5, "rgba(245,222,115,0.55)");
+      radGlow(x, y, r * 1.8, "rgba(255,245,180,0.90)");
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(255,250,218,1)"; ctx.fill();
       ctx.beginPath(); ctx.arc(x - r*.3, y - r*.3, r*.35, 0, Math.PI * 2);
@@ -315,11 +316,11 @@ function HeroChandelier() {
           const tg = Math.sin(tt * 0.5 + d.p + 0.5) * 0.065;
           a2[i].v += (tg - a2[i].a) * 0.003; a2[i].v *= 0.97; a2[i].a += a2[i].v;
         });
-        const pt = Math.sin(tt * 0.42 + 1.4) * 0.055;
-        pendS.v += (pt - pendS.a) * 0.0018; pendS.v *= 0.97; pendS.a += pendS.v;
+        const pt = Math.sin(tt * 0.78 + 1.4) * 0.13;
+        pendS.v += (pt - pendS.a) * 0.004; pendS.v *= 0.97; pendS.a += pendS.v;
       }
 
-      radGlow(180, 270, 175, "rgba(200,160,50,0.08)");
+      radGlow(180, 270, 175, "rgba(200,160,50,0.18)");
 
       // Whole chandelier swings from ceiling mount
       ctx.save();
@@ -424,7 +425,7 @@ function HeroChandelier() {
 
       // grand pendant crystal — starts below inner ring bottom (r2cy+r2ry=332, py=334)
       ctx.save();
-      ctx.translate(px,py); ctx.rotate(pendS.a);
+      ctx.translate(px,py); ctx.rotate(pendS.a + pendS.v * 18);
       const pw=16,ph=44;
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph); ctx.lineTo(-pw,ph*.4); ctx.closePath();
       ctx.fillStyle="rgba(232,200,70,0.92)"; ctx.fill();
@@ -437,9 +438,9 @@ function HeroChandelier() {
       ctx.restore();
 
       // central warm glow
-      radGlow(180,255,58,"rgba(228,180,55,0.22)");
-      radGlow(180,190,22,"rgba(245,225,130,0.40)");
-      radGlow(180,190,9,"rgba(255,250,215,0.58)");
+      radGlow(180,255,80,"rgba(228,180,55,0.32)");
+      radGlow(180,190,30,"rgba(245,225,130,0.55)");
+      radGlow(180,190,12,"rgba(255,250,215,0.80)");
 
       // glints
       if (!prefersReduced) {
