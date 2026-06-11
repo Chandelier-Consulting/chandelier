@@ -657,7 +657,6 @@ export default function Home() {
   const { scrollY } = useScroll();
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroParallax = useTransform(heroProgress, [0, 1], [0, 80]);
   const glowParallax = useTransform(heroProgress, [0, 1], [0, -60]);
   const [scrolled, setScrolled] = useState(false);
 
