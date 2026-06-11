@@ -4,11 +4,20 @@ import {
   createOneTimeInvoice,
   syncCustomerToClient,
 } from "@/lib/billing";
+import { requireAdminAccessForRequest } from "@/lib/admin-auth";
 import { getServiceSupabase } from "@/lib/supabase";
 import { findOrCreateCustomer, getStripe } from "@/lib/stripe";
 import { createCombinedBillingSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const access = await requireAdminAccessForRequest(request);
+  if (!access.ok) {
+    return NextResponse.json(
+      { error: access.error, missing: "missing" in access ? access.missing : undefined },
+      { status: access.status },
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = createCombinedBillingSchema.safeParse(body);
 

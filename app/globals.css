@@ -1239,6 +1239,142 @@ h4 {
   color: var(--gold);
 }
 
+.admin-notice {
+  width: fit-content;
+  margin: -18px 0 26px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: oklch(0.84 0.13 88 / 0.09);
+  color: var(--gold);
+  padding: 10px 14px;
+}
+
+.admin-workspace,
+.admin-editor,
+.admin-record-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-form-card,
+.admin-kanban article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, oklch(0.2 0.013 220 / 0.72), oklch(0.15 0.012 250 / 0.58));
+  padding: 24px;
+}
+
+.admin-form-card h2,
+.admin-kanban h2 {
+  color: var(--gold);
+}
+
+.admin-kanban {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-kanban article {
+  min-height: 140px;
+  padding: 18px;
+}
+
+.admin-kanban p {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  margin: 12px 0 0;
+  padding-top: 10px;
+}
+
+.admin-records article {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-details {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.admin-details div {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-details dt {
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.admin-details dd {
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.admin-edit {
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+  padding-top: 12px;
+}
+
+.admin-edit summary {
+  color: var(--gold);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.admin-edit form {
+  margin-top: 14px;
+}
+
+.admin-inline-actions,
+.admin-inline-actions form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-inline-actions select {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: oklch(0.11 0.01 250 / 0.72);
+  color: var(--white);
+  padding: 8px 12px;
+}
+
+.checkbox-field {
+  min-height: 50px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-field input {
+  width: auto;
+  accent-color: var(--gold);
+}
+
+.field-help {
+  color: var(--faint);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.danger {
+  border-color: var(--copper) !important;
+  color: var(--amber) !important;
+}
+
 .admin-login-form {
   max-width: 560px;
 }
@@ -1591,7 +1727,8 @@ h4 {
   .service-list,
   .pricing-grid,
   .admin-metrics,
-  .admin-grid {
+  .admin-grid,
+  .admin-kanban {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -1693,6 +1830,7 @@ h4 {
   .pricing-grid,
   .admin-metrics,
   .admin-grid,
+  .admin-kanban,
   .line-editor {
     grid-template-columns: 1fr;
   }

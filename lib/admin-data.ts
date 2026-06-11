@@ -43,10 +43,174 @@ type DashboardSource = {
 };
 
 export type AdminRow = {
+  id?: string;
   title: string;
   meta: string[];
   amount?: string;
   href?: string;
+  fields?: Array<{ label: string; value: string }>;
+};
+
+export type AdminField = {
+  name: string;
+  label: string;
+  type: "text" | "email" | "url" | "tel" | "textarea" | "number" | "date" | "select" | "checkbox" | "multitext" | "file";
+  required?: boolean;
+  options?: string[];
+  relation?: "businessUnits" | "leads" | "clients" | "projects" | "contractors" | "proposals";
+  bucket?: "proposal-pdfs" | "receipts" | "contractor-invoices" | "payment-receipts" | "client-assets";
+  placeholder?: string;
+};
+
+export type AdminFormDefinition = {
+  table: string;
+  title: string;
+  submitLabel: string;
+  fields: AdminField[];
+};
+
+const expenseCategories = [
+  "software",
+  "hosting",
+  "domains",
+  "ai_credits",
+  "contractor",
+  "marketing",
+  "legal",
+  "accounting",
+  "office",
+  "equipment",
+  "travel",
+  "meals",
+  "other",
+];
+
+export const adminFormDefinitions: Partial<Record<AdminSection, AdminFormDefinition>> = {
+  "business-units": {
+    table: "business_units",
+    title: "Business unit",
+    submitLabel: "Save business unit",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "slug", label: "Slug", type: "text", required: true },
+      { name: "description", label: "Description", type: "textarea" },
+    ],
+  },
+  leads: {
+    table: "leads",
+    title: "Lead",
+    submitLabel: "Save lead",
+    fields: [
+      { name: "business_unit_id", label: "Business unit", type: "select", relation: "businessUnits" },
+      { name: "business_name", label: "Business name", type: "text", required: true },
+      { name: "contact_name", label: "Contact name", type: "text", required: true },
+      { name: "email", label: "Email", type: "email", required: true },
+      { name: "phone", label: "Phone", type: "tel" },
+      { name: "website", label: "Website", type: "url" },
+      { name: "budget", label: "Budget", type: "text" },
+      {
+        name: "requested_services",
+        label: "Requested services",
+        type: "multitext",
+        placeholder: "Website Development, AI Automations",
+      },
+      { name: "project_description", label: "Project description", type: "textarea", required: true },
+      { name: "status", label: "Status", type: "select", options: ["new", "proposal", "won", "invoiced", "lost"] },
+    ],
+  },
+  clients: {
+    table: "clients",
+    title: "Client",
+    submitLabel: "Save client",
+    fields: [
+      { name: "business_unit_id", label: "Business unit", type: "select", relation: "businessUnits" },
+      { name: "name", label: "Client name", type: "text", required: true },
+      { name: "contact_name", label: "Contact name", type: "text" },
+      { name: "email", label: "Email", type: "email" },
+      { name: "phone", label: "Phone", type: "tel" },
+      { name: "notes", label: "Notes", type: "textarea" },
+      { name: "stripe_customer_id", label: "Stripe customer ID", type: "text" },
+    ],
+  },
+  proposals: {
+    table: "proposals",
+    title: "Proposal",
+    submitLabel: "Save proposal",
+    fields: [
+      { name: "business_unit_id", label: "Business unit", type: "select", relation: "businessUnits" },
+      { name: "lead_id", label: "Lead", type: "select", relation: "leads" },
+      { name: "client_id", label: "Client", type: "select", relation: "clients" },
+      { name: "scope_of_work", label: "Scope of work", type: "textarea", required: true },
+      { name: "deliverables", label: "Deliverables", type: "multitext" },
+      { name: "pricing_cents", label: "Price", type: "number", required: true },
+      { name: "pdf_path", label: "Proposal PDF", type: "file", bucket: "proposal-pdfs" },
+      { name: "status", label: "Status", type: "select", options: ["draft", "sent", "accepted", "declined"] },
+    ],
+  },
+  projects: {
+    table: "projects",
+    title: "Project",
+    submitLabel: "Save project",
+    fields: [
+      { name: "business_unit_id", label: "Business unit", type: "select", relation: "businessUnits" },
+      { name: "client_id", label: "Client", type: "select", relation: "clients" },
+      { name: "proposal_id", label: "Proposal", type: "select", relation: "proposals" },
+      { name: "name", label: "Project name", type: "text", required: true },
+      { name: "deliverables", label: "Deliverables", type: "multitext" },
+      { name: "status", label: "Status", type: "select", options: ["active", "blocked", "complete", "paused"] },
+      { name: "budget_cents", label: "Budget", type: "number", required: true },
+      { name: "cost_cents", label: "Cost", type: "number", required: true },
+    ],
+  },
+  expenses: {
+    table: "expenses",
+    title: "Expense",
+    submitLabel: "Save expense",
+    fields: [
+      { name: "business_unit_id", label: "Business unit", type: "select", relation: "businessUnits" },
+      { name: "client_id", label: "Client", type: "select", relation: "clients" },
+      { name: "project_id", label: "Project", type: "select", relation: "projects" },
+      { name: "category", label: "Category", type: "select", options: expenseCategories, required: true },
+      { name: "amount_cents", label: "Amount", type: "number", required: true },
+      { name: "receipt_path", label: "Receipt", type: "file", bucket: "receipts" },
+      { name: "tax_deductible", label: "Tax deductible", type: "checkbox" },
+      { name: "reimbursable", label: "Reimbursable", type: "checkbox" },
+      { name: "business_purpose", label: "Business purpose", type: "textarea", required: true },
+      { name: "spent_at", label: "Spent at", type: "date", required: true },
+    ],
+  },
+  contractors: {
+    table: "contractors",
+    title: "Contractor",
+    submitLabel: "Save contractor",
+    fields: [
+      { name: "business_unit_id", label: "Business unit", type: "select", relation: "businessUnits" },
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "email", label: "Email", type: "email" },
+      {
+        name: "tax_form_status",
+        label: "Tax form status",
+        type: "select",
+        options: ["not_requested", "requested", "received", "not_required"],
+      },
+      { name: "payment_method_notes", label: "Payment method notes", type: "textarea" },
+      { name: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+  payouts: {
+    table: "contractor_payouts",
+    title: "Payout",
+    submitLabel: "Save payout",
+    fields: [
+      { name: "contractor_id", label: "Contractor", type: "select", relation: "contractors", required: true },
+      { name: "client_id", label: "Client", type: "select", relation: "clients" },
+      { name: "project_id", label: "Project", type: "select", relation: "projects" },
+      { name: "amount_cents", label: "Amount", type: "number", required: true },
+      { name: "receipt_path", label: "Contractor invoice", type: "file", bucket: "contractor-invoices" },
+      { name: "status", label: "Status", type: "select", options: ["tracked", "approved", "paid", "void"] },
+      { name: "paid_at", label: "Paid at", type: "date" },
+    ],
+  },
 };
 
 function cents(value: unknown) {
@@ -119,79 +283,120 @@ function text(row: AnyRow, key: string, fallback = "Not set") {
   return typeof value === "string" && value.length > 0 ? value : fallback;
 }
 
+function displayValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "Not set";
+  if (Array.isArray(value)) return value.join(", ");
+  if (typeof value === "object") return JSON.stringify(value);
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  return value;
+}
+
+function detailFields(section: AdminSection, row: AnyRow) {
+  const definition = adminFormDefinitions[section];
+  if (!definition) return [];
+  return definition.fields.map((field) => {
+    const value = field.name.endsWith("_cents")
+      ? currency(cents(row[field.name]))
+      : displayValue(row[field.name]);
+    return { label: field.label, value: String(value) };
+  });
+}
+
 export function buildSectionRows(section: AdminSection, rows: AnyRow[]): AdminRow[] {
   return rows.map((row) => {
     if (section === "business-units") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "name"),
         meta: [text(row, "slug"), text(row, "description", "No description")],
         amount: currency(cents(row.revenueCents)),
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "leads") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "business_name"),
         meta: [text(row, "contact_name"), text(row, "email"), text(row, "status")],
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "clients") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "name"),
         meta: [text(row, "contact_name"), text(row, "email"), text(row, "phone")],
+        amount: currency(cents(row.revenue_cents)),
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "proposals") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "scope_of_work"),
         meta: [text(row, "status"), `Deliverables: ${Array.isArray(row.deliverables) ? row.deliverables.length : 0}`],
         amount: currency(cents(row.pricing_cents)),
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "projects") {
+      const profit = cents(row.budget_cents) - cents(row.cost_cents);
       return {
+        id: text(row, "id", ""),
         title: text(row, "name"),
-        meta: [text(row, "status"), `Cost ${currency(cents(row.cost_cents))}`],
+        meta: [text(row, "status"), `Cost ${currency(cents(row.cost_cents))}`, `Profit ${currency(profit)}`],
         amount: currency(cents(row.budget_cents)),
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "invoices") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "stripe_invoice_id", "Local invoice"),
         meta: [text(row, "status"), text(row, "due_date", "No due date")],
         amount: currency(cents(row.total_cents)),
         href: text(row, "hosted_invoice_url", ""),
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "expenses") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "business_purpose"),
         meta: [text(row, "category"), text(row, "spent_at")],
         amount: currency(cents(row.amount_cents)),
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "contractors") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "name"),
         meta: [text(row, "email"), text(row, "tax_form_status")],
+        fields: detailFields(section, row),
       };
     }
 
     if (section === "payouts") {
       return {
+        id: text(row, "id", ""),
         title: text(row, "status"),
         meta: [text(row, "paid_at", "Not paid"), text(row, "receipt_path", "No receipt")],
         amount: currency(cents(row.amount_cents)),
+        fields: detailFields(section, row),
       };
     }
 
     return {
+      id: text(row, "id", ""),
       title: text(row, "id"),
       meta: Object.entries(row)
         .filter(([key]) => key !== "id")
@@ -199,6 +404,55 @@ export function buildSectionRows(section: AdminSection, rows: AnyRow[]): AdminRo
         .map(([key, value]) => `${key}: ${String(value ?? "Not set")}`),
     };
   });
+}
+
+export function buildMutationPayload(section: AdminSection, values: Map<string, FormDataEntryValue | FormDataEntryValue[]>) {
+  const definition = adminFormDefinitions[section];
+  if (!definition) {
+    throw new Error(`Section ${section} does not support mutations.`);
+  }
+
+  const payload: Record<string, unknown> = {};
+  for (const field of definition.fields) {
+    const raw = values.get(field.name);
+    const first = Array.isArray(raw) ? raw[0] : raw;
+    const stringValue = String(first ?? "").trim();
+
+    if (field.type === "checkbox") {
+      payload[field.name] = stringValue === "on" || stringValue === "true";
+      continue;
+    }
+
+    if (field.type === "file") {
+      continue;
+    }
+
+    if (!stringValue && !field.required) {
+      payload[field.name] = null;
+      continue;
+    }
+
+    if (field.type === "number" || field.name.endsWith("_cents")) {
+      const number = Number(stringValue.replace(/[$,]/g, ""));
+      payload[field.name] = Number.isFinite(number) ? Math.round(number * 100) : 0;
+      continue;
+    }
+
+    if (field.type === "multitext") {
+      const parts = stringValue
+        .split(/\n|,/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+      payload[field.name] = field.name === "deliverables"
+        ? parts.map((title) => ({ title, done: false }))
+        : parts;
+      continue;
+    }
+
+    payload[field.name] = stringValue;
+  }
+
+  return payload as Record<string, string | number | boolean | string[] | Array<{ title: string; done: boolean }> | null>;
 }
 
 async function list(client: SupabaseClient, table: string) {
@@ -259,6 +513,44 @@ export async function loadAdminRows(client: SupabaseClient, section: AdminSectio
 
   const table = tableBySection[section];
   return table ? buildSectionRows(section, await list(client, table)) : [];
+}
+
+export async function loadAdminRecords(client: SupabaseClient, section: AdminSection) {
+  const definition = adminFormDefinitions[section];
+  if (!definition) return [];
+
+  if (section === "clients") {
+    const rows = await list(client, definition.table);
+    const invoices = await list(client, "invoices");
+    return rows.map((clientRow) => ({
+      ...clientRow,
+      revenue_cents: invoices
+        .filter((invoice) => invoice.client_id === clientRow.id)
+        .reduce((sum, invoice) => sum + cents(invoice.total_cents), 0),
+    }));
+  }
+
+  return list(client, definition.table);
+}
+
+export async function loadAdminOptions(client: SupabaseClient) {
+  const [businessUnits, leads, clients, projects, contractors, proposals] = await Promise.all([
+    list(client, "business_units"),
+    list(client, "leads"),
+    list(client, "clients"),
+    list(client, "projects"),
+    list(client, "contractors"),
+    list(client, "proposals"),
+  ]);
+
+  return {
+    businessUnits: businessUnits.map((row) => ({ value: String(row.id), label: text(row, "name") })),
+    leads: leads.map((row) => ({ value: String(row.id), label: text(row, "business_name") })),
+    clients: clients.map((row) => ({ value: String(row.id), label: text(row, "name") })),
+    projects: projects.map((row) => ({ value: String(row.id), label: text(row, "name") })),
+    contractors: contractors.map((row) => ({ value: String(row.id), label: text(row, "name") })),
+    proposals: proposals.map((row) => ({ value: String(row.id), label: text(row, "scope_of_work") })),
+  };
 }
 
 function csvCell(value: unknown) {

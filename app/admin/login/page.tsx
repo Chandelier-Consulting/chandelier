@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { getPublicSupabase } from "@/lib/admin-auth";
-import { adminEmails, env } from "@/lib/env";
+import { headers } from "next/headers";
+import { buildAdminRedirectUrlFromHeaders, getPublicSupabase } from "@/lib/admin-auth";
+import { adminEmails } from "@/lib/env";
 
 async function sendLoginLink(formData: FormData) {
   "use server";
@@ -24,7 +25,10 @@ async function sendLoginLink(formData: FormData) {
   const { error } = await client.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/api/auth/callback?next=/admin`,
+      emailRedirectTo: buildAdminRedirectUrlFromHeaders(
+        await headers(),
+        "/api/auth/callback?next=/admin",
+      ),
     },
   });
 

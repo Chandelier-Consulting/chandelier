@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { requireAdminAccessForRequest } from "@/lib/admin-auth";
 import { env, missingEnv } from "@/lib/env";
 import { getServiceSupabase } from "@/lib/supabase";
 import { invoiceActionSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const access = await requireAdminAccessForRequest(request);
+  if (!access.ok) {
+    return NextResponse.json(
+      { error: access.error, missing: "missing" in access ? access.missing : undefined },
+      { status: access.status },
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = invoiceActionSchema.safeParse(body);
 
