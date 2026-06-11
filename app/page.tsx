@@ -586,7 +586,10 @@ function ServiceCard({
   service: (typeof services)[number];
 }) {
   const col = index % 3;
-  // scroll-driven subtle parallax on desktop
+  const cardRef = useRef<HTMLElement>(null);
+  const inView = useInView(cardRef, { once: true, margin: "0px 0px -80px 0px" });
+
+  // scroll-driven subtle parallax on desktop (position only, not opacity)
   const pStart = index * 0.075;
   const pEnd = pStart + 0.24;
   const rotate = useTransform(progress, [pStart, pEnd], [(index - 1) * 2.5, 0]);
@@ -594,13 +597,11 @@ function ServiceCard({
 
   return (
     <motion.article
+      ref={cardRef}
       className="svc"
       data-card
-      // Each card fades+rises as it enters the viewport. col gives left-to-right stagger within each row.
-      initial={{ opacity: 0.15, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -60px 0px" }}
-      transition={{ duration: 0.55, delay: col * 0.09, ease }}
+      animate={{ opacity: inView ? 1 : 0.15, y: inView ? 0 : 32 }}
+      transition={{ duration: 0.6, delay: col * 0.1, ease: "easeOut" }}
       style={desktop ? { rotate, scale } : undefined}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
