@@ -127,8 +127,8 @@ const clients = [
 ] as const;
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 34 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.9, ease } },
+  hidden: { opacity: 0, y: 48, scale: 0.97 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 1.1, ease } },
 };
 
 function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
@@ -387,7 +387,7 @@ function HeroChandelier() {
       const r2cx=180,r2cy=322,r2rx=58,r2ry=10;
 
       // Pendant chain drawn BEFORE rings so it threads visibly through their open centers
-      const pLen=142;
+      const pLen=160;
       const px=180+Math.sin(pendS.a)*pLen, py=192+Math.cos(pendS.a)*pLen;
       ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(px,py);
       ctx.strokeStyle=gold(0.46); ctx.lineWidth=1.1; ctx.stroke();
@@ -498,8 +498,8 @@ function SplitHeading({ children, className = "" }: { children: ReactNode[] | Re
           <motion.span
             className="block"
             variants={{
-              hidden: { y: "118%" },
-              show: { y: 0, transition: { duration: 1.05, delay: index * 0.09, ease } },
+              hidden: { y: "130%", opacity: 0 },
+              show: { y: 0, opacity: 1, transition: { duration: 1.3, delay: index * 0.13, ease } },
             }}
           >
             {line}
@@ -585,12 +585,12 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = index * 0.075;
-  const end = start + 0.24;
-  const opacity = useTransform(progress, [start, end], [0.28, 1]);
-  const y = useTransform(progress, [start, end], [36, 0]);
-  const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
-  const scale = useTransform(progress, [start, end], [0.96, 1]);
+  const start = index * 0.115;
+  const end = start + 0.16;
+  const opacity = useTransform(progress, [start, end], [0, 1]);
+  const y = useTransform(progress, [start, end], [50, 0]);
+  const rotate = useTransform(progress, [start, end], [(index - 1) * 3, 0]);
+  const scale = useTransform(progress, [start, end], [0.94, 1]);
 
   return (
     <motion.article
@@ -696,6 +696,9 @@ export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const glowParallax = useTransform(heroProgress, [0, 1], [0, -60]);
+  const chandelierY = useTransform(heroProgress, [0, 1], [0, -55]);
+  const chandelierRotate = useTransform(heroProgress, [0, 0.5, 1], [0, 1.8, -1.2]);
+  const chandelierScale = useTransform(heroProgress, [0, 1], [1, 0.90]);
   const [scrolled, setScrolled] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => setScrolled(latest > 24));
@@ -756,7 +759,7 @@ export default function Home() {
                 </div>
               </Reveal>
             </div>
-            <motion.div className="chandelier-stage">
+            <motion.div className="chandelier-stage" style={{ y: chandelierY, rotate: chandelierRotate, scale: chandelierScale }}>
               <div className="halo" />
               <HeroChandelier />
             </motion.div>
