@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:api.anthropic.com)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(Select-String -Pattern \"consulting\")",
+      "Bash(git push *)",
+      "Bash(git stash *)",
+      "Bash(git pull *)",
+      "Bash(npx vercel *)",
+      "Bash(Select-Object -Last 80)",
+      "PowerShell(npx vercel inspect dpl_2Aecv1M5ThZszaa3RVvn36aV8uLM --logs 2>&1)",
+      "Bash(npm run *)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;C:\\\\Users\\\\rehaa\\\\AppData\\\\Roaming\\\\npm;\" + $env:PATH; npm run build 2>&1 | Select-Object -Last 60)",
+      "Bash(npx tsc *)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit)",
+      "WebFetch(domain:vercel.com)"
     ]
   }
 }
