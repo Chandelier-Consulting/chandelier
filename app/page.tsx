@@ -226,12 +226,19 @@ function HeroChandelier() {
     }
 
     function drawRing(cx: number, cy: number, rx: number, ry: number) {
-      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
-      ctx.fillStyle = "rgba(18,14,4,0.62)"; ctx.fill();
-      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
-      ctx.strokeStyle = gold(0.75); ctx.lineWidth = 2.2; ctx.stroke();
-      ctx.beginPath(); ctx.ellipse(cx, cy - 3, rx - 1, ry - 1.5, 0, 0, Math.PI*2);
-      ctx.strokeStyle = warm(0.28); ctx.lineWidth = 0.9; ctx.stroke();
+      // Torus: fill only the rail band, leave interior transparent
+      const ri = rx - 11, riy = Math.max(1, ry - 6);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2, false);
+      ctx.ellipse(cx, cy, ri, riy, 0, 0, Math.PI * 2, true);
+      ctx.fillStyle = "rgba(22,17,5,0.54)";
+      ctx.fill("evenodd");
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = gold(0.90); ctx.lineWidth = 2.4; ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(cx, cy, ri, riy, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = gold(0.38); ctx.lineWidth = 0.9; ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(cx, cy - 2.5, rx - 3, ry - 2, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = warm(0.30); ctx.lineWidth = 0.85; ctx.stroke();
     }
 
     function drawCrystal(bx: number, by: number, sz: number, ang: number, bright: boolean) {
@@ -371,38 +378,54 @@ function HeroChandelier() {
       ctx.beginPath(); ctx.ellipse(272,104,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       drawBulb(272,96,4.2);
 
-      // bobeche — draw before chains so chains appear on top
+      // bobeche
       ctx.beginPath(); ctx.ellipse(180,190,20,4.5,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       ctx.beginPath(); ctx.ellipse(180,187,16,3,0,0,Math.PI*2); ctx.fillStyle=warm(0.65); ctx.fill();
 
-      // Suspension chains: bobeche → outer ring (4 chains)
-      ([ [83,231],[123,224],[237,224],[277,231] ] as [number,number][]).forEach(([tx,ty]) => {
-        ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(tx,ty);
-        ctx.strokeStyle=gold(0.40); ctx.lineWidth=0.8; ctx.stroke();
-      });
-      // Suspension chains: bobeche → inner ring (2 chains)
-      ([ [134,296],[226,296] ] as [number,number][]).forEach(([tx,ty]) => {
-        ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(tx,ty);
-        ctx.strokeStyle=gold(0.30); ctx.lineWidth=0.7; ctx.stroke();
-      });
+      // Ring geometry constants — used for chain endpoints and crystal attach points
+      const r1cx=180,r1cy=255,r1rx=100,r1ry=13;
+      const r2cx=180,r2cy=322,r2rx=58,r2ry=10;
 
-      // outer ring + tier-1 crystals (dropped lower for elegant proportions)
-      drawRing(180,230,100,13);
-      t1data.forEach((d,i) => drawCrystal(d.x,230,d.s,a1[i].a,d.s>=1.05));
-
-      // inner ring + tier-2 crystals
-      drawRing(180,295,58,10);
-      t2data.forEach((d,i) => drawCrystal(d.x,295,d.s,a2[i].a,d.s>=1.0));
-
-      // grand pendant — longer chain for elongated look
-      const pLen=95;
+      // Pendant chain drawn BEFORE rings so it threads visibly through their open centers
+      const pLen=142;
       const px=180+Math.sin(pendS.a)*pLen, py=192+Math.cos(pendS.a)*pLen;
-      ctx.beginPath(); ctx.arc(180,192,2.2,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(px,py);
-      ctx.strokeStyle=gold(0.52); ctx.lineWidth=1.1; ctx.stroke();
+      ctx.strokeStyle=gold(0.46); ctx.lineWidth=1.1; ctx.stroke();
+
+      // Suspension chains from bobeche to exact top-of-ellipse on each ring
+      const chainTo = (targets: number[], cx: number, cy: number, rx: number, ry: number, op: number, lw: number) => {
+        targets.forEach(tx => {
+          const dx=tx-cx, ty=cy - ry*Math.sqrt(Math.max(0,1-(dx/rx)*(dx/rx)));
+          ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(tx,ty);
+          ctx.strokeStyle=gold(op); ctx.lineWidth=lw; ctx.stroke();
+        });
+      };
+      chainTo([82,122,180,238,278], r1cx,r1cy,r1rx,r1ry, 0.44,0.85);
+      chainTo([132,180,228],        r2cx,r2cy,r2rx,r2ry, 0.30,0.70);
+
+      // outer ring — crystals attach at exact bottom rim of the ellipse
+      drawRing(r1cx,r1cy,r1rx,r1ry);
+      t1data.forEach((d,i) => {
+        const dx=d.x-r1cx;
+        const attachY = r1cy + r1ry*Math.sqrt(Math.max(0,1-(dx/r1rx)*(dx/r1rx)));
+        drawCrystal(d.x, attachY, d.s, a1[i].a, d.s>=1.05);
+      });
+
+      // inner ring — crystals attach at exact bottom rim
+      drawRing(r2cx,r2cy,r2rx,r2ry);
+      t2data.forEach((d,i) => {
+        const dx=d.x-r2cx;
+        const attachY = r2cy + r2ry*Math.sqrt(Math.max(0,1-(dx/r2rx)*(dx/r2rx)));
+        drawCrystal(d.x, attachY, d.s, a2[i].a, d.s>=1.0);
+      });
+
+      // bobeche knot (drawn after rings so it sits on top)
+      ctx.beginPath(); ctx.arc(180,192,2.5,0,Math.PI*2); ctx.fillStyle=gold(0.95); ctx.fill();
+
+      // grand pendant crystal — starts below inner ring bottom (r2cy+r2ry=332, py=334)
       ctx.save();
       ctx.translate(px,py); ctx.rotate(pendS.a);
-      const pw=20,ph=52;
+      const pw=16,ph=44;
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph); ctx.lineTo(-pw,ph*.4); ctx.closePath();
       ctx.fillStyle="rgba(232,200,70,0.92)"; ctx.fill();
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph*.53); ctx.closePath();
@@ -410,11 +433,11 @@ function HeroChandelier() {
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-pw,ph*.4); ctx.lineTo(0,ph*.53); ctx.closePath();
       ctx.fillStyle="rgba(255,255,255,0.22)"; ctx.fill();
       ctx.beginPath(); ctx.ellipse(-pw*.28,ph*.18,pw*.22,ph*.085,0,0,Math.PI*2);
-      ctx.fillStyle="rgba(255,255,255,0.60)"; ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,0.62)"; ctx.fill();
       ctx.restore();
 
       // central warm glow
-      radGlow(180,230,55,"rgba(228,180,55,0.24)");
+      radGlow(180,255,58,"rgba(228,180,55,0.22)");
       radGlow(180,190,22,"rgba(245,225,130,0.40)");
       radGlow(180,190,9,"rgba(255,250,215,0.58)");
 
@@ -424,8 +447,8 @@ function HeroChandelier() {
         drawGlint(312,80, tt*1.4+3.35, 1.05);
         drawGlint(88,92,  tt*1.4+1.55, 0.82);
         drawGlint(272,92, tt*1.4+4.90, 0.82);
-        drawGlint(82,227, tt*1.4+2.50, 0.62);
-        drawGlint(278,227,tt*1.4+5.85, 0.62);
+        drawGlint(82,252, tt*1.4+2.50, 0.62);
+        drawGlint(278,252,tt*1.4+5.85, 0.62);
         drawGlint(px+Math.sin(pendS.a)*ph, py+ph, tt*1.4+7.70, 0.92);
       }
 
