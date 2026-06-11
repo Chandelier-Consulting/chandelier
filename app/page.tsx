@@ -169,283 +169,270 @@ function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
 }
 
 /* Single faceted crystal drop — hangs from a ring at (x, ringY) */
-function Crystal({ x, ringY, delay, size = 1, bright = false }: {
-  x: number; ringY: number; delay: number; size?: number; bright?: boolean;
-}) {
-  const w = 5.5 * size, h = 11 * size, thread = 9 * size;
-  const ty = ringY + thread;
-  const col = bright ? "oklch(0.94 0.15 82 / 0.95)" : "oklch(0.83 0.10 80 / 0.80)";
-  return (
-    <motion.g
-      animate={{ rotate: [-0.55, 0.55, -0.55] }}
-      transition={{ duration: 4.2 + delay * 0.5, repeat: Infinity, ease: "easeInOut", delay }}
-      style={{ originX: `${x}px`, originY: `${ringY}px` }}
-    >
-      {/* bead at ring — visually pins the crystal to the rail */}
-      <circle cx={x} cy={ringY} r={2} fill="oklch(0.78 0.10 82 / 0.88)" />
-      {/* thread */}
-      <line x1={x} y1={ringY + 2} x2={x} y2={ty} stroke="oklch(0.76 0.09 80 / 0.68)" strokeWidth="1.0" />
-      {/* diamond body */}
-      <polygon points={`${x},${ty} ${x+w},${ty+h*0.40} ${x},${ty+h} ${x-w},${ty+h*0.40}`} fill={col} />
-      <polygon points={`${x},${ty} ${x+w},${ty+h*0.40} ${x},${ty+h*0.53}`} fill="oklch(0.46 0.06 80 / 0.46)" />
-      <polygon points={`${x},${ty} ${x-w},${ty+h*0.40} ${x},${ty+h*0.53}`} fill="white" opacity="0.19" />
-      <ellipse cx={x - w*0.28} cy={ty + h*0.18} rx={w*0.22} ry={h*0.085}
-        fill="white" opacity={bright ? 0.65 : 0.42} />
-    </motion.g>
-  );
-}
+// Canvas-rendered chandelier — no SVG gradient issues, real pendulum physics
 
-function Glint({ x, y, delay, scale = 1 }: { x: number; y: number; delay: number; scale?: number }) {
-  const r = scale;
-  return (
-    <motion.g
-      initial={{ opacity: 0 }}
-      animate={{ opacity: [0, 0.92, 0] }}
-      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay }}
-      style={{ originX: `${x}px`, originY: `${y}px` }}
-    >
-      <line x1={x} y1={y-12*r} x2={x} y2={y+12*r} stroke="oklch(0.99 0.08 82)" strokeWidth={0.9*r} strokeLinecap="round" />
-      <line x1={x-12*r} y1={y} x2={x+12*r} y2={y} stroke="oklch(0.99 0.08 82)" strokeWidth={0.9*r} strokeLinecap="round" />
-      <line x1={x-6*r} y1={y-6*r} x2={x+6*r} y2={y+6*r} stroke="oklch(0.97 0.10 82)" strokeWidth={0.6*r} strokeLinecap="round" opacity="0.55" />
-      <line x1={x+6*r} y1={y-6*r} x2={x-6*r} y2={y+6*r} stroke="oklch(0.97 0.10 82)" strokeWidth={0.6*r} strokeLinecap="round" opacity="0.55" />
-      <circle cx={x} cy={y} r={1.6*r} fill="white" opacity="0.9" />
-    </motion.g>
-  );
-}
 
 function HeroChandelier() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const prefersReduced = useReducedMotion();
+  const rafRef = useRef<number>(0);
 
-  // tier 1 — outer ring ringY=205, spaced x across visible ring arc
-  const tier1: { x: number; delay: number; size: number }[] = [
-    { x: 82,  delay: 0,    size: 1.10 },
-    { x: 103, delay: 0.28, size: 0.87 },
-    { x: 124, delay: 0.52, size: 0.94 },
-    { x: 145, delay: 0.75, size: 0.83 },
-    { x: 162, delay: 0.96, size: 0.90 },
-    { x: 180, delay: 1.18, size: 1.13 },
-    { x: 198, delay: 0.96, size: 0.90 },
-    { x: 215, delay: 0.75, size: 0.83 },
-    { x: 236, delay: 0.52, size: 0.94 },
-    { x: 257, delay: 0.28, size: 0.87 },
-    { x: 278, delay: 0,    size: 1.10 },
-  ];
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-  // tier 2 — inner ring ringY=258
-  const tier2: { x: number; delay: number; size: number }[] = [
-    { x: 126, delay: 0.22, size: 0.82 },
-    { x: 146, delay: 0.46, size: 0.93 },
-    { x: 164, delay: 0.68, size: 0.87 },
-    { x: 180, delay: 0.90, size: 1.03 },
-    { x: 196, delay: 0.68, size: 0.87 },
-    { x: 214, delay: 0.46, size: 0.93 },
-    { x: 234, delay: 0.22, size: 0.82 },
-  ];
+    const W = 360, H = 490;
+    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 2);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
 
-  // solid arm color — no gradients, guaranteed visible
-  const arm = "oklch(0.76 0.10 82 / 0.92)";
-  const armHi = "oklch(0.93 0.13 82 / 0.26)";
+    const gold = (a: number) => `rgba(198,162,55,${a})`;
+    const warm = (a: number) => `rgba(240,210,110,${a})`;
+
+    // Draw a multi-segment cubic bezier arm with a highlight pass.
+    // pts is a flat array: [startX,startY, cp1x,cp1y,cp2x,cp2y,endX,endY, cp1x,...].
+    function armPath(pts: number[]) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0], pts[1]);
+      for (let i = 2; i < pts.length; i += 6) {
+        ctx.bezierCurveTo(pts[i], pts[i+1], pts[i+2], pts[i+3], pts[i+4], pts[i+5]);
+      }
+    }
+
+    function drawArm(pts: number[], w: number) {
+      ctx.lineCap = "round";
+      armPath(pts);
+      ctx.strokeStyle = gold(0.90); ctx.lineWidth = w; ctx.stroke();
+      armPath(pts);
+      ctx.strokeStyle = warm(0.22); ctx.lineWidth = w * 0.38; ctx.stroke();
+    }
+
+    function radGlow(x: number, y: number, r: number, inner: string) {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, inner);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function drawBulb(x: number, y: number, r: number) {
+      radGlow(x, y, r * 4.5, "rgba(235,195,62,0.30)");
+      radGlow(x, y, r * 2,   "rgba(245,222,115,0.72)");
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,250,218,1)"; ctx.fill();
+      ctx.beginPath(); ctx.arc(x - r*.3, y - r*.3, r*.35, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.fill();
+    }
+
+    function drawRing(cx: number, cy: number, rx: number, ry: number) {
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(18,14,4,0.62)"; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+      ctx.strokeStyle = gold(0.75); ctx.lineWidth = 2.2; ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(cx, cy - 3, rx - 1, ry - 1.5, 0, 0, Math.PI*2);
+      ctx.strokeStyle = warm(0.28); ctx.lineWidth = 0.9; ctx.stroke();
+    }
+
+    function drawCrystal(bx: number, by: number, sz: number, ang: number, bright: boolean) {
+      const tl = 9 * sz, w = 5.5 * sz, h = 11 * sz;
+      const ex = bx + Math.sin(ang) * tl;
+      const ey = by + Math.cos(ang) * tl;
+      ctx.beginPath(); ctx.arc(bx, by, 2, 0, Math.PI * 2);
+      ctx.fillStyle = gold(0.88); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(bx, by + 2); ctx.lineTo(ex, ey);
+      ctx.strokeStyle = gold(0.62); ctx.lineWidth = 1.0; ctx.stroke();
+      ctx.save();
+      ctx.translate(ex, ey); ctx.rotate(ang);
+      ctx.beginPath();
+      ctx.moveTo(0,0); ctx.lineTo(w,h*.40); ctx.lineTo(0,h); ctx.lineTo(-w,h*.40); ctx.closePath();
+      ctx.fillStyle = bright ? "rgba(232,197,72,0.95)" : "rgba(196,162,52,0.80)"; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w,h*.40); ctx.lineTo(0,h*.53); ctx.closePath();
+      ctx.fillStyle = "rgba(82,58,8,0.46)"; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-w,h*.40); ctx.lineTo(0,h*.53); ctx.closePath();
+      ctx.fillStyle = "rgba(255,255,255,0.19)"; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-w*.28, h*.18, w*.22, h*.085, 0, 0, Math.PI*2);
+      ctx.fillStyle = bright ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.42)"; ctx.fill();
+      ctx.restore();
+    }
+
+    function drawGlint(x: number, y: number, phase: number, sc: number) {
+      const op = Math.pow(Math.max(0, Math.sin(phase)), 3.5);
+      if (op < 0.01) return;
+      const r = 12 * sc, rs = 6 * sc;
+      ctx.save();
+      ctx.globalAlpha = op * 0.92;
+      ctx.strokeStyle = "rgba(252,242,175,1)"; ctx.lineCap = "round";
+      ctx.lineWidth = 0.9 * sc;
+      ctx.beginPath(); ctx.moveTo(x, y-r); ctx.lineTo(x, y+r); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-r, y); ctx.lineTo(x+r, y); ctx.stroke();
+      ctx.lineWidth = 0.6 * sc; ctx.globalAlpha = op * 0.50;
+      ctx.beginPath(); ctx.moveTo(x-rs,y-rs); ctx.lineTo(x+rs,y+rs); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+rs,y-rs); ctx.lineTo(x-rs,y+rs); ctx.stroke();
+      ctx.globalAlpha = op * 0.9;
+      ctx.beginPath(); ctx.arc(x, y, 1.6*sc, 0, Math.PI*2);
+      ctx.fillStyle = "white"; ctx.fill();
+      ctx.restore();
+    }
+
+    // Crystal pendulum state
+    const t1data = [
+      {x:82,s:1.10,p:0.00},{x:103,s:0.87,p:0.28},{x:124,s:0.94,p:0.52},
+      {x:145,s:0.83,p:0.75},{x:162,s:0.90,p:0.96},{x:180,s:1.13,p:1.18},
+      {x:198,s:0.90,p:0.96},{x:215,s:0.83,p:0.75},{x:236,s:0.94,p:0.52},
+      {x:257,s:0.87,p:0.28},{x:278,s:1.10,p:0.00},
+    ];
+    const t2data = [
+      {x:126,s:0.82,p:0.22},{x:146,s:0.93,p:0.46},{x:164,s:0.87,p:0.68},
+      {x:180,s:1.03,p:0.90},{x:196,s:0.87,p:0.68},{x:214,s:0.93,p:0.46},
+      {x:234,s:0.82,p:0.22},
+    ];
+    const a1 = t1data.map(() => ({a:0,v:0}));
+    const a2 = t2data.map(() => ({a:0,v:0}));
+    const swayS = {a:0,v:0};
+    const pendS = {a:0,v:0};
+    let tt = 0;
+
+    function frame() {
+      ctx.clearRect(0, 0, W, H);
+
+      if (!prefersReduced) {
+        tt += 0.008;
+        const st = Math.sin(tt * 0.55) * 0.007;
+        swayS.v += (st - swayS.a) * 0.002; swayS.v *= 0.98; swayS.a += swayS.v;
+        t1data.forEach((d,i) => {
+          const tg = Math.sin(tt * 0.5 + d.p) * 0.065;
+          a1[i].v += (tg - a1[i].a) * 0.003; a1[i].v *= 0.97; a1[i].a += a1[i].v;
+        });
+        t2data.forEach((d,i) => {
+          const tg = Math.sin(tt * 0.5 + d.p + 0.5) * 0.065;
+          a2[i].v += (tg - a2[i].a) * 0.003; a2[i].v *= 0.97; a2[i].a += a2[i].v;
+        });
+        const pt = Math.sin(tt * 0.42 + 1.4) * 0.055;
+        pendS.v += (pt - pendS.a) * 0.0018; pendS.v *= 0.97; pendS.a += pendS.v;
+      }
+
+      radGlow(180, 270, 175, "rgba(200,160,50,0.08)");
+
+      // Whole chandelier swings from ceiling mount
+      ctx.save();
+      ctx.translate(180, 20); ctx.rotate(swayS.a); ctx.translate(-180, -20);
+
+      // ceiling rose
+      ctx.beginPath(); ctx.ellipse(180,22,26,5.5,0,0,Math.PI*2);
+      ctx.fillStyle=gold(0.85); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(180,19,18,3.5,0,0,Math.PI*2);
+      ctx.fillStyle=warm(0.50); ctx.fill();
+
+      // stem rod
+      const sg = ctx.createLinearGradient(180,27,180,82);
+      sg.addColorStop(0,gold(0.95)); sg.addColorStop(1,gold(0.55));
+      ctx.fillStyle=sg; ctx.fillRect(178,27,4,55);
+
+      // crown canopy (stacked ellipses)
+      ([
+        [180,87,50,10,0.92],[180,84,48,8.5,0.86],[180,81,38,6.5,0.70],[180,79,24,4.5,0.55],
+      ] as [number,number,number,number,number][]).forEach(([cx,cy,rx,ry,a]) => {
+        ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+        ctx.fillStyle=gold(a); ctx.fill();
+      });
+      ctx.beginPath(); ctx.ellipse(180,85,48,8.5,0,0,Math.PI*2);
+      ctx.strokeStyle=warm(0.42); ctx.lineWidth=1.0; ctx.stroke();
+
+      // body column
+      const bg = ctx.createLinearGradient(180,87,180,185);
+      bg.addColorStop(0,gold(0.95)); bg.addColorStop(1,gold(0.62));
+      ctx.beginPath();
+      ctx.moveTo(171,87); ctx.lineTo(168,182); ctx.quadraticCurveTo(180,189,192,182); ctx.lineTo(189,87);
+      ctx.closePath(); ctx.fillStyle=bg; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(177,87); ctx.lineTo(175,182); ctx.quadraticCurveTo(180,187,185,182); ctx.lineTo(183,87);
+      ctx.closePath(); ctx.fillStyle="rgba(255,245,200,0.10)"; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(180,136,13,3,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(180,134,11,2.2,0,0,Math.PI*2); ctx.fillStyle=warm(0.65); ctx.fill();
+
+      // arms — flat [startX,startY, cp1x,cp1y,cp2x,cp2y,endX,endY, ...]
+      drawArm([172,108, 145,107,105,105,75,109, 59,112,51,104,55,96], 3.8);
+      drawArm([188,108, 215,107,255,105,285,109, 301,112,309,104,305,96], 3.8);
+      drawArm([173,110, 155,109,122,108,98,111, 85,113,79,107,83,100], 2.7);
+      drawArm([187,110, 205,109,238,108,262,111, 275,113,281,107,277,100], 2.7);
+
+      // sockets + bulbs
+      ctx.beginPath(); ctx.ellipse(55,99,5.5,2.2,0,0,Math.PI*2); ctx.fillStyle=gold(0.92); ctx.fill();
+      drawBulb(55,91,5.5);
+      ctx.beginPath(); ctx.ellipse(305,99,5.5,2.2,0,0,Math.PI*2); ctx.fillStyle=gold(0.92); ctx.fill();
+      drawBulb(305,91,5.5);
+      ctx.beginPath(); ctx.ellipse(83,103,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      drawBulb(83,96,4);
+      ctx.beginPath(); ctx.ellipse(277,103,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      drawBulb(277,96,4);
+
+      // outer ring + tier-1 crystals
+      drawRing(180,205,100,12);
+      t1data.forEach((d,i) => drawCrystal(d.x,205,d.s,a1[i].a,d.s>=1.05));
+
+      // inner ring + tier-2 crystals
+      drawRing(180,258,58,9.5);
+      t2data.forEach((d,i) => drawCrystal(d.x,258,d.s,a2[i].a,d.s>=1.0));
+
+      // bobeche
+      ctx.beginPath(); ctx.ellipse(180,190,20,4.5,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(180,187,16,3,0,0,Math.PI*2); ctx.fillStyle=warm(0.65); ctx.fill();
+
+      // grand pendant
+      const pLen=68;
+      const px=180+Math.sin(pendS.a)*pLen, py=192+Math.cos(pendS.a)*pLen;
+      ctx.beginPath(); ctx.arc(180,192,2.2,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(180,192); ctx.lineTo(px,py);
+      ctx.strokeStyle=gold(0.58); ctx.lineWidth=1.1; ctx.stroke();
+      ctx.save();
+      ctx.translate(px,py); ctx.rotate(pendS.a);
+      const pw=17,ph=42;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph); ctx.lineTo(-pw,ph*.4); ctx.closePath();
+      ctx.fillStyle="rgba(232,200,70,0.90)"; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph*.53); ctx.closePath();
+      ctx.fillStyle="rgba(82,58,8,0.46)"; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-pw,ph*.4); ctx.lineTo(0,ph*.53); ctx.closePath();
+      ctx.fillStyle="rgba(255,255,255,0.20)"; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-pw*.28,ph*.18,pw*.22,ph*.085,0,0,Math.PI*2);
+      ctx.fillStyle="rgba(255,255,255,0.55)"; ctx.fill();
+      ctx.restore();
+
+      // central warm glow
+      radGlow(180,205,50,"rgba(228,180,55,0.28)");
+      radGlow(180,190,20,"rgba(245,225,130,0.42)");
+      radGlow(180,190,8,"rgba(255,250,215,0.60)");
+
+      // glints
+      if (!prefersReduced) {
+        drawGlint(55,87,  tt*1.4+0.00, 1.05);
+        drawGlint(305,87, tt*1.4+3.35, 1.05);
+        drawGlint(83,92,  tt*1.4+1.55, 0.82);
+        drawGlint(277,92, tt*1.4+4.90, 0.82);
+        drawGlint(82,203, tt*1.4+2.50, 0.62);
+        drawGlint(278,203,tt*1.4+5.85, 0.62);
+        drawGlint(px+Math.sin(pendS.a)*ph, py+ph, tt*1.4+7.70, 0.88);
+      }
+
+      ctx.restore();
+
+      // subtle floor reflection
+      radGlow(180,480,90,`rgba(200,162,50,${0.07+Math.sin(tt)*0.015})`);
+
+      if (!prefersReduced) {
+        rafRef.current = requestAnimationFrame(frame);
+      }
+    }
+
+    frame();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [prefersReduced]);
 
   return (
     <figure className="hero-chandelier" aria-label="Animated crystal chandelier">
-      <svg viewBox="0 0 360 490" xmlns="http://www.w3.org/2000/svg" className="chandelier-svg" aria-hidden="true">
-        <defs>
-          <radialGradient id="ch-amb" cx="50%" cy="48%" r="52%">
-            <stop offset="0%"   stopColor="oklch(0.90 0.14 78)" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="oklch(0.08 0.02 250)" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="ch-bulb" cx="38%" cy="32%" r="62%">
-            <stop offset="0%"   stopColor="oklch(0.99 0.10 82)" stopOpacity="1" />
-            <stop offset="50%"  stopColor="oklch(0.88 0.18 72)" stopOpacity="0.75" />
-            <stop offset="100%" stopColor="oklch(0.60 0.10 60)" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="ch-stem" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.80 0.11 82)" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="oklch(0.58 0.07 80)" stopOpacity="0.55" />
-          </linearGradient>
-          <linearGradient id="ch-body" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.75 0.11 82)" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="oklch(0.55 0.07 80)" stopOpacity="0.62" />
-          </linearGradient>
-          <filter id="ch-g" x="-55%" y="-55%" width="210%" height="210%">
-            <feGaussianBlur stdDeviation="6" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="ch-sg" x="-90%" y="-90%" width="280%" height="280%">
-            <feGaussianBlur stdDeviation="18" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="ch-xg" x="-130%" y="-130%" width="360%" height="360%">
-            <feGaussianBlur stdDeviation="28" />
-          </filter>
-        </defs>
-
-        <ellipse cx="180" cy="270" rx="175" ry="210" fill="url(#ch-amb)" />
-
-        <motion.g
-          animate={prefersReduced ? {} : { rotate: [-0.45, 0.45, -0.45] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          style={{ originX: "180px", originY: "20px" }}
-        >
-          {/* ceiling rose */}
-          <ellipse cx="180" cy="22" rx="26" ry="5.5" fill="url(#ch-stem)" />
-          <ellipse cx="180" cy="19" rx="18" ry="3.5" fill="oklch(0.84 0.12 82 / 0.50)" />
-
-          {/* suspension rod */}
-          <rect x="178" y="27" width="4" height="55" rx="2" fill="url(#ch-stem)" />
-
-          {/* crown canopy */}
-          <ellipse cx="180" cy="87" rx="50" ry="10"  fill="oklch(0.60 0.08 80 / 0.92)" />
-          <ellipse cx="180" cy="84" rx="48" ry="8.5" fill="oklch(0.70 0.10 80 / 0.86)" />
-          <ellipse cx="180" cy="81" rx="38" ry="6.5" fill="oklch(0.78 0.11 82 / 0.70)" />
-          <ellipse cx="180" cy="79" rx="24" ry="4.5" fill="oklch(0.86 0.13 82 / 0.55)" />
-          <ellipse cx="180" cy="85" rx="48" ry="8.5" fill="none"
-            stroke="oklch(0.88 0.13 82 / 0.42)" strokeWidth="1.0" />
-
-          {/* body column — y=87 to y=185 */}
-          <path d="M171 87 L168 182 Q180 189 192 182 L189 87 Z" fill="url(#ch-body)" />
-          <path d="M177 87 L175 182 Q180 187 185 182 L183 87 Z"
-            fill="oklch(0.90 0.12 82 / 0.11)" />
-          <ellipse cx="180" cy="136" rx="13" ry="3"   fill="oklch(0.72 0.10 82 / 0.90)" />
-          <ellipse cx="180" cy="134" rx="11" ry="2.2" fill="oklch(0.83 0.12 82 / 0.65)" />
-
-          {/* ── ARMS — branch from body at y=108, mostly horizontal, tip curls up ──
-               Using solid strokes only (no url() gradients) so they always render. */}
-
-          {/* outer left: M172 108 → mostly horizontal → tip curls UP to (55,96) */}
-          <path d="M172 108 C145 107 105 105 75 109 C59 112 51 104 55 96"
-            fill="none" stroke={arm} strokeWidth="3.8" strokeLinecap="round" />
-          <path d="M172 108 C145 107 105 105 75 109 C59 112 51 104 55 96"
-            fill="none" stroke={armHi} strokeWidth="1.5" strokeLinecap="round" />
-
-          {/* outer right: symmetric */}
-          <path d="M188 108 C215 107 255 105 285 109 C301 112 309 104 305 96"
-            fill="none" stroke={arm} strokeWidth="3.8" strokeLinecap="round" />
-          <path d="M188 108 C215 107 255 105 285 109 C301 112 309 104 305 96"
-            fill="none" stroke={armHi} strokeWidth="1.5" strokeLinecap="round" />
-
-          {/* inner left */}
-          <path d="M173 110 C155 109 122 108 98 111 C85 113 79 107 83 100"
-            fill="none" stroke={arm} strokeWidth="2.7" strokeLinecap="round" />
-          <path d="M173 110 C155 109 122 108 98 111 C85 113 79 107 83 100"
-            fill="none" stroke={armHi} strokeWidth="1.1" strokeLinecap="round" />
-
-          {/* inner right */}
-          <path d="M187 110 C205 109 238 108 262 111 C275 113 281 107 277 100"
-            fill="none" stroke={arm} strokeWidth="2.7" strokeLinecap="round" />
-          <path d="M187 110 C205 109 238 108 262 111 C275 113 281 107 277 100"
-            fill="none" stroke={armHi} strokeWidth="1.1" strokeLinecap="round" />
-
-          {/* arm tip sockets + bulbs */}
-          {/* outer left (55, 96) */}
-          <ellipse cx="55" cy="99" rx="5.5" ry="2.2" fill="oklch(0.65 0.09 80 / 0.92)" />
-          <g filter="url(#ch-g)">
-            <circle cx="55" cy="91" r="12" fill="url(#ch-bulb)" opacity="0.55" />
-            <circle cx="55" cy="91" r="5.5" fill="oklch(0.99 0.08 82)" />
-            <circle cx="53.5" cy="89.5" r="1.7" fill="white" opacity="0.78" />
-          </g>
-          {/* outer right (305, 96) */}
-          <ellipse cx="305" cy="99" rx="5.5" ry="2.2" fill="oklch(0.65 0.09 80 / 0.92)" />
-          <g filter="url(#ch-g)">
-            <circle cx="305" cy="91" r="12" fill="url(#ch-bulb)" opacity="0.55" />
-            <circle cx="305" cy="91" r="5.5" fill="oklch(0.99 0.08 82)" />
-            <circle cx="303.5" cy="89.5" r="1.7" fill="white" opacity="0.78" />
-          </g>
-          {/* inner left (83, 100) */}
-          <ellipse cx="83" cy="103" rx="4.5" ry="1.8" fill="oklch(0.65 0.09 80 / 0.90)" />
-          <g filter="url(#ch-g)">
-            <circle cx="83" cy="96" r="9" fill="url(#ch-bulb)" opacity="0.50" />
-            <circle cx="83" cy="96" r="4" fill="oklch(0.99 0.08 82)" />
-          </g>
-          {/* inner right (277, 100) */}
-          <ellipse cx="277" cy="103" rx="4.5" ry="1.8" fill="oklch(0.65 0.09 80 / 0.90)" />
-          <g filter="url(#ch-g)">
-            <circle cx="277" cy="96" r="9" fill="url(#ch-bulb)" opacity="0.50" />
-            <circle cx="277" cy="96" r="4" fill="oklch(0.99 0.08 82)" />
-          </g>
-
-          {/* ── OUTER ring rail — drawn BEFORE tier-1 crystals ── */}
-          <ellipse cx="180" cy="205" rx="100" ry="12"
-            fill="oklch(0.14 0.01 250 / 0.62)" />
-          <ellipse cx="180" cy="205" rx="101" ry="12.5"
-            fill="none" stroke="oklch(0.80 0.11 82 / 0.75)" strokeWidth="2.2" />
-          <ellipse cx="180" cy="202" rx="99" ry="10.5"
-            fill="none" stroke="oklch(0.90 0.13 82 / 0.30)" strokeWidth="0.9" />
-
-          {/* tier 1 — ringY=205 */}
-          {tier1.map((d, i) => (
-            <Crystal key={`t1-${i}`} x={d.x} ringY={205} delay={d.delay} size={d.size} bright={d.size >= 1.05} />
-          ))}
-
-          {/* ── INNER ring rail — drawn BEFORE tier-2 crystals ── */}
-          <ellipse cx="180" cy="258" rx="58" ry="9.5"
-            fill="oklch(0.14 0.01 250 / 0.58)" />
-          <ellipse cx="180" cy="258" rx="59" ry="10"
-            fill="none" stroke="oklch(0.80 0.11 82 / 0.70)" strokeWidth="2.0" />
-          <ellipse cx="180" cy="255" rx="57" ry="8"
-            fill="none" stroke="oklch(0.90 0.13 82 / 0.26)" strokeWidth="0.8" />
-
-          {/* tier 2 — ringY=258 */}
-          {tier2.map((d, i) => (
-            <Crystal key={`t2-${i}`} x={d.x} ringY={258} delay={d.delay} size={d.size} bright={d.size >= 1.0} />
-          ))}
-
-          {/* bobeche cap at body bottom */}
-          <ellipse cx="180" cy="190" rx="20" ry="4.5" fill="oklch(0.68 0.09 82 / 0.90)" />
-          <ellipse cx="180" cy="187" rx="16" ry="3"   fill="oklch(0.80 0.11 82 / 0.65)" />
-
-          {/* grand central pendant */}
-          <motion.g
-            animate={prefersReduced ? {} : { rotate: [-0.5, 0.5, -0.5] }}
-            transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
-            style={{ originX: "180px", originY: "190px" }}
-          >
-            <circle cx="180" cy="190" r="2.2" fill="oklch(0.76 0.10 82 / 0.90)" />
-            <line x1="180" y1="192" x2="180" y2="260"
-              stroke="oklch(0.74 0.09 80 / 0.60)" strokeWidth="1.1" />
-            <g filter="url(#ch-g)">
-              <polygon points="180,260 197,290 180,332 163,290" fill="oklch(0.93 0.16 83 / 0.90)" />
-              <polygon points="180,260 197,290 180,302" fill="oklch(0.50 0.07 80 / 0.46)" />
-              <polygon points="180,260 163,290 180,302" fill="white" opacity="0.21" />
-              <ellipse cx="175" cy="276" rx="5.5" ry="10" fill="white" opacity="0.27" />
-              <ellipse cx="177" cy="268" rx="2.5" ry="4.5" fill="white" opacity="0.58" />
-            </g>
-          </motion.g>
-
-          {/* central warm light */}
-          <g filter="url(#ch-xg)">
-            <circle cx="180" cy="205" r="28" fill="oklch(0.92 0.16 75)" opacity="0.52" />
-          </g>
-          <g filter="url(#ch-sg)">
-            <circle cx="180" cy="190" r="9" fill="oklch(0.99 0.08 82)" opacity="0.58" />
-          </g>
-
-          {/* glints at bulb tips */}
-          {!prefersReduced && (<>
-            <Glint x={55}  y={87}  delay={0}    scale={1.05} />
-            <Glint x={305} y={87}  delay={0.95} scale={1.05} />
-            <Glint x={83}  y={92}  delay={0.42} scale={0.82} />
-            <Glint x={277} y={92}  delay={1.37} scale={0.82} />
-            <Glint x={82}  y={203} delay={0.68} scale={0.62} />
-            <Glint x={278} y={203} delay={1.62} scale={0.62} />
-            <Glint x={180} y={329} delay={2.1}  scale={0.88} />
-          </>)}
-
-        </motion.g>
-
-        <motion.ellipse
-          cx="180" cy="480" rx="85" ry="8"
-          fill="oklch(0.86 0.14 80 / 0.07)"
-          animate={prefersReduced ? {} : { opacity: [0.4, 0.85, 0.4], rx: [78, 92, 78] } as never}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </svg>
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
     </figure>
   );
 }
