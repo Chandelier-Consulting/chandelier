@@ -6,11 +6,12 @@ import {
   useInView,
   useMotionValue,
   useMotionValueEvent,
+  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
 } from "framer-motion";
-import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useId, useRef, useState } from "react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -88,37 +89,36 @@ const fadeUp = {
 };
 
 function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
+  const id = useId();
+  const goldId = `${id.replace(/:/g, "")}-gold`;
+
   return (
-    <svg className={className} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+    <svg className={className} viewBox="0 0 96 96" fill="none" aria-hidden="true">
       <defs>
-        <radialGradient id="bead" cx="50%" cy="38%" r="65%">
-          <stop offset="0%" stopColor="#fff0b3" />
-          <stop offset="55%" stopColor="#efc24c" />
-          <stop offset="100%" stopColor="#be8428" />
-        </radialGradient>
-        <linearGradient id="strand" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f2d982" />
-          <stop offset="100%" stopColor="#bd8328" />
+        <linearGradient id={goldId} x1="16" y1="8" x2="78" y2="90" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#fff1af" />
+          <stop offset="0.48" stopColor="#d8aa3f" />
+          <stop offset="1" stopColor="#8f6428" />
         </linearGradient>
-        <filter id="soft-glow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
-      <g stroke="url(#strand)" strokeLinecap="round">
-        <line x1="50" y1="14" x2="50" y2="28" strokeWidth="1.8" />
-        <path d="M30 40 Q50 28 70 40" strokeWidth="1.9" />
-        <line x1="30" y1="40" x2="30" y2="45" strokeWidth="1.6" />
-        <line x1="70" y1="40" x2="70" y2="45" strokeWidth="1.6" />
-        <line x1="50" y1="28" x2="50" y2="56" strokeWidth="1.8" />
+      <rect x="7" y="7" width="82" height="82" rx="24" fill="currentColor" opacity="0.08" />
+      <rect x="10" y="10" width="76" height="76" rx="22" stroke={`url(#${goldId})`} strokeWidth="2" />
+      <path
+        d="M60.5 31.5c-3.9-4.2-8.4-6.3-13.5-6.3-11.3 0-20.2 9.3-20.2 22.8S35.7 70.8 47 70.8c5.4 0 10-2.2 13.8-6.6"
+        stroke={`url(#${goldId})`}
+        strokeLinecap="round"
+        strokeWidth="7"
+      />
+      <g stroke={`url(#${goldId})`} strokeLinecap="round" strokeWidth="2.3">
+        <path d="M48 14v16" />
+        <path d="M36 45c6.8-5.1 17.2-5.1 24 0" />
+        <path d="M40 54c5-3.4 11-3.4 16 0" />
+        <path d="M48 54v13" />
       </g>
-      <g fill="url(#bead)" filter="url(#soft-glow)">
-        <circle cx="30" cy="49" r="4.4" />
-        <circle cx="70" cy="49" r="4.4" />
-        <circle cx="50" cy="60" r="4.8" />
+      <g fill={`url(#${goldId})`}>
+        <circle cx="36" cy="47" r="3.3" />
+        <circle cx="60" cy="47" r="3.3" />
+        <circle cx="48" cy="70" r="4.2" />
       </g>
     </svg>
   );
@@ -218,6 +218,7 @@ function AnimatedNumber({ value }: { value: number }) {
 function ServicesSection() {
   const ref = useRef<HTMLElement>(null);
   const [desktop, setDesktop] = useState(false);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.4 });
   const barScale = useTransform(progress, [0, 1], [0, 1]);
@@ -236,7 +237,7 @@ function ServicesSection() {
       <div className="wrap">
         <div className="mb-[clamp(48px,7vw,86px)] max-w-[760px]">
           <Reveal><span className="kicker mb-6">What we build</span></Reveal>
-          <SplitHeading className="h-section">Technology, tailored to<br />the work you already do.</SplitHeading>
+          <SplitHeading className="h-section">{["Technology, tailored to", "the work you already do."]}</SplitHeading>
           <Reveal delay={0.08}><p className="lede mt-7">We do not hand you a toolbox and wish you luck. We design, build, and deploy the system, then make sure it earns its keep.</p></Reveal>
         </div>
       </div>
@@ -246,11 +247,11 @@ function ServicesSection() {
           <div className="wrap">
             <div className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3">
               {services.map((service, index) => (
-                <ServiceCard key={service.title} index={index} desktop={desktop} progress={progress} service={service} />
+                <ServiceCard key={service.title} index={index} desktop={desktop && !reduceMotion} progress={progress} service={service} />
               ))}
             </div>
           </div>
-          <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: barScale }} /></div>
+          {!reduceMotion && <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: barScale }} /></div>}
         </div>
       </section>
     </section>
@@ -268,18 +269,23 @@ function ServiceCard({
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
 }) {
-  const start = 0.06 + index * 0.27;
-  const end = start + 0.36;
-  const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [170, 0]);
-  const rotate = useTransform(progress, [start, end], [(index - 1) * 6, 0]);
-  const scale = useTransform(progress, [start, end], [0.9, 1]);
+  const start = index * 0.18;
+  const end = start + 0.34;
+  const opacity = useTransform(progress, [start, end], [0.28, 1]);
+  const y = useTransform(progress, [start, end], [72, 0]);
+  const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
+  const scale = useTransform(progress, [start, end], [0.96, 1]);
 
   return (
     <motion.article
       className="svc"
       data-card
       style={desktop ? { opacity, y, rotate, scale } : undefined}
+      onPointerMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+        event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`);
+      }}
     >
       <span className="svc-num">{service.number}</span>
       <div className="svc-icon">{service.icon}</div>
@@ -296,6 +302,7 @@ function ClientsSection() {
   const rowRef = useRef<HTMLDivElement>(null);
   const [travel, setTravel] = useState(0);
   const [desktop, setDesktop] = useState(false);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.4 });
   const x = useTransform(progress, [0, 1], [0, -travel]);
@@ -308,8 +315,14 @@ function ClientsSection() {
     };
 
     measure();
+    const observer = new ResizeObserver(measure);
+    if (rowRef.current) observer.observe(rowRef.current);
+    if (rowRef.current?.parentElement) observer.observe(rowRef.current.parentElement);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
   useEffect(() => {
@@ -327,13 +340,11 @@ function ClientsSection() {
         <div className="cl-stage">
           <div className="mx-auto w-full max-w-[1240px] px-[var(--gutter)]">
             <Reveal><span className="kicker mb-6">Who we serve</span></Reveal>
-            <SplitHeading className="h-section">Built for the businesses<br />that built the block.</SplitHeading>
+            <SplitHeading className="h-section">{["Built for the businesses", "that built the block."]}</SplitHeading>
           </div>
-          <div className="cl-hint">
-            Drag to explore
-          </div>
+          <div className="cl-hint">{desktop && !reduceMotion ? "Scroll to explore" : "Swipe to explore"}</div>
           <div className="cl-rail">
-            <motion.div ref={rowRef} className="cl-row" style={desktop ? { x } : undefined}>
+            <motion.div ref={rowRef} className="cl-row" style={desktop && !reduceMotion ? { x } : undefined}>
               {clients.map(([num, title, copy, path], index) => (
                 <motion.article
                   className="client"
@@ -355,7 +366,7 @@ function ClientsSection() {
               ))}
             </motion.div>
           </div>
-          <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: progress }} /></div>
+          {!reduceMotion && <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: progress }} /></div>}
         </div>
       </section>
     </section>
@@ -461,7 +472,7 @@ export default function Home() {
           <div className="wrap">
             <div className="mb-[clamp(48px,7vw,86px)] max-w-[760px]">
               <Reveal><span className="kicker mb-6">Why Chandelier</span></Reveal>
-              <SplitHeading className="h-section">Big-firm capability.<br />Corner-shop attention.</SplitHeading>
+              <SplitHeading className="h-section">{["Big-firm capability.", "Corner-shop attention."]}</SplitHeading>
             </div>
             <div className="stats-grid">
               {stats.map(([tag, value, suffix, label], index) => (
@@ -491,7 +502,7 @@ export default function Home() {
             <Reveal>
               <span className="kicker center">Let&apos;s begin</span>
               <h2 className="h-section mx-auto mb-[26px] mt-6 max-w-[16ch]">
-                <SplitHeading>Ready to look like the<br />best on the street?</SplitHeading>
+                <SplitHeading>{["Ready to look like the", "best on the street?"]}</SplitHeading>
               </h2>
               <p className="lede mx-auto mb-11">Tell us about your business. We&apos;ll show you exactly what we&apos;d build and what it&apos;d be worth.</p>
             </Reveal>
@@ -544,7 +555,7 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© 2026 Chandelier Consulting - chandelierconsulting.dev</span>
+            <span>© 2026 Chandelier Consulting. Operated by Perceo Inc.</span>
             <span>Designed to make local business shine.</span>
           </div>
         </div>

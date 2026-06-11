@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: oklch(0.13 0.01 285);
+  --background: oklch(0.13 0.012 250);
   --foreground: oklch(0.97 0.004 90);
-  --black: oklch(0.13 0.01 285);
-  --black-2: oklch(0.16 0.012 285);
-  --black-3: oklch(0.19 0.014 285);
-  --line: oklch(0.3 0.015 285);
+  --black: oklch(0.13 0.012 250);
+  --black-2: oklch(0.17 0.012 235);
+  --black-3: oklch(0.2 0.013 220);
+  --line: oklch(0.32 0.018 230);
   --white: oklch(0.97 0.004 90);
   --muted: oklch(0.78 0.01 90);
-  --faint: oklch(0.6 0.012 285);
+  --faint: oklch(0.62 0.013 230);
   --gold: oklch(0.84 0.13 88);
-  --amber: oklch(0.78 0.14 70);
-  --violet: oklch(0.64 0.18 285);
+  --amber: oklch(0.75 0.14 58);
+  --copper: oklch(0.58 0.12 42);
+  --teal: oklch(0.6 0.08 190);
   --display: var(--font-display-face), "Bodoni MT", Didot, Georgia, serif;
   --sans: var(--font-text-face), "Hanken Grotesk", system-ui, sans-serif;
   --mono: var(--font-mono-face), "Space Mono", ui-monospace, monospace;
@@ -163,6 +164,7 @@ h4 {
   font-size: 15px;
   font-weight: 650;
   line-height: 1;
+  text-align: center;
   text-decoration: none;
   transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease), border-color 0.3s var(--ease);
 }
@@ -193,8 +195,8 @@ h4 {
 }
 
 .nav.scrolled {
-  border-bottom-color: oklch(0.3 0.015 285 / 0.6);
-  background: oklch(0.13 0.01 285 / 0.74);
+  border-bottom-color: oklch(0.32 0.018 230 / 0.62);
+  background: oklch(0.13 0.012 250 / 0.78);
   backdrop-filter: blur(18px) saturate(1.4);
 }
 
@@ -322,7 +324,7 @@ h4 {
   justify-content: center;
   gap: 8px;
   padding: var(--gutter);
-  background: oklch(0.11 0.012 285 / 0.96);
+  background: oklch(0.12 0.014 250 / 0.96);
   backdrop-filter: blur(24px);
   transform: translateY(-100%);
   transition: transform 0.6s var(--ease), visibility 0.6s var(--ease);
@@ -377,7 +379,7 @@ h4 {
   left: 50%;
   width: min(60vw, 760px);
   height: min(60vw, 760px);
-  background: radial-gradient(circle, oklch(0.82 0.13 88 / 0.3), transparent 65%);
+  background: radial-gradient(circle, oklch(0.82 0.13 88 / 0.24), transparent 65%);
   transform: translateX(-50%);
 }
 
@@ -386,7 +388,7 @@ h4 {
   left: -8%;
   width: min(46vw, 620px);
   height: min(46vw, 620px);
-  background: radial-gradient(circle, oklch(0.55 0.2 285 / 0.32), transparent 68%);
+  background: radial-gradient(circle, oklch(0.6 0.08 190 / 0.18), transparent 68%);
 }
 
 .glow.violet-r {
@@ -394,14 +396,14 @@ h4 {
   bottom: -6%;
   width: min(44vw, 600px);
   height: min(44vw, 600px);
-  background: radial-gradient(circle, oklch(0.58 0.18 290 / 0.26), transparent 68%);
+  background: radial-gradient(circle, oklch(0.58 0.12 42 / 0.16), transparent 68%);
 }
 
 .hero-grid {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
   align-items: center;
   gap: clamp(20px, 4vw, 56px);
 }
@@ -437,8 +439,8 @@ h4 {
   height: 118%;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 38%, oklch(0.82 0.13 88 / 0.34), transparent 58%),
-    radial-gradient(circle at 50% 70%, oklch(0.58 0.18 288 / 0.22), transparent 62%);
+    radial-gradient(circle at 50% 38%, oklch(0.82 0.13 88 / 0.3), transparent 58%),
+    radial-gradient(circle at 50% 70%, oklch(0.6 0.08 190 / 0.16), transparent 62%);
   filter: blur(30px);
   animation: breathe 7s var(--ease) infinite;
 }
@@ -575,8 +577,8 @@ h4 {
   overflow: hidden;
   min-height: 430px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  background: linear-gradient(180deg, oklch(0.19 0.014 285 / 0.6), oklch(0.15 0.012 285 / 0.4));
+  border-radius: 8px;
+  background: linear-gradient(180deg, oklch(0.2 0.013 220 / 0.72), oklch(0.15 0.012 250 / 0.58));
   padding: 38px 34px 42px;
   transition: border-color 0.6s var(--ease), transform 0.6s var(--ease);
 }
@@ -621,7 +623,7 @@ h4 {
   margin: 26px 0 28px;
   place-items: center;
   border: 1px solid oklch(0.5 0.08 88 / 0.5);
-  border-radius: 12px;
+  border-radius: 8px;
   background: oklch(0.82 0.13 88 / 0.06);
   color: var(--gold);
 }
@@ -674,7 +676,7 @@ h4 {
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--line);
 }
 
@@ -747,8 +749,8 @@ h4 {
   overflow: hidden;
   scroll-snap-align: center;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: linear-gradient(160deg, oklch(0.17 0.013 285 / 0.5), transparent);
+  border-radius: 8px;
+  background: linear-gradient(160deg, oklch(0.18 0.012 230 / 0.72), oklch(0.14 0.012 250 / 0.2));
   padding: 30px 30px 34px;
 }
 
@@ -829,8 +831,8 @@ h4 {
   max-width: 760px;
   margin: 56px auto 0;
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: linear-gradient(180deg, oklch(0.18 0.013 285 / 0.7), oklch(0.14 0.011 285 / 0.5));
+  border-radius: 8px;
+  background: linear-gradient(180deg, oklch(0.18 0.012 230 / 0.8), oklch(0.14 0.011 250 / 0.62));
   padding: clamp(28px, 4vw, 52px);
   text-align: left;
   backdrop-filter: blur(8px);
@@ -860,8 +862,8 @@ h4 {
 .field textarea,
 .field select {
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: oklch(0.11 0.01 285 / 0.7);
+  border-radius: 8px;
+  background: oklch(0.11 0.01 250 / 0.72);
   color: var(--white);
   font-family: var(--sans);
   font-size: 16px;
@@ -1030,7 +1032,7 @@ h4 {
 @media (min-width: 901px) {
   .svc-track {
     position: relative;
-    height: 320vh;
+    height: 220vh;
   }
 
   .svc-stage {
@@ -1048,7 +1050,7 @@ h4 {
 
   .cl-track {
     position: relative;
-    height: 360vh;
+    height: 260vh;
   }
 
   .cl-stage {
@@ -1058,7 +1060,7 @@ h4 {
     height: 100vh;
     flex-direction: column;
     justify-content: center;
-    gap: clamp(34px, 4vw, 56px);
+    gap: clamp(28px, 3.4vw, 48px);
     overflow: hidden;
   }
 
@@ -1072,7 +1074,8 @@ h4 {
   }
 
   .cl-row .client {
-    width: 380px;
+    width: min(32vw, 392px);
+    min-width: 330px;
     min-height: 440px;
     scroll-snap-align: none;
   }
@@ -1125,18 +1128,18 @@ h4 {
 
   .hero {
     min-height: auto;
-    padding-top: 130px;
-    padding-bottom: 60px;
+    padding-top: 112px;
+    padding-bottom: 72px;
   }
 
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 22px;
   }
 
   .chandelier-stage {
     order: -1;
-    min-height: 50vh;
+    min-height: 38vh;
   }
 
   .hero-chandelier {
@@ -1151,11 +1154,68 @@ h4 {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .section-pad {
+    padding-block: clamp(76px, 11vh, 120px);
+  }
+
+  .cl-row {
+    padding-right: var(--gutter);
+  }
+
+  .cl-hint {
+    display: flex;
+    max-width: var(--maxw);
+    margin: 28px auto 16px;
+    padding-inline: var(--gutter);
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
 }
 
 @media (max-width: 560px) {
   body {
     font-size: 17px;
+  }
+
+  .nav-inner {
+    padding-block: 15px;
+  }
+
+  .brand {
+    gap: 10px;
+  }
+
+  .brand .name {
+    font-size: 20px;
+  }
+
+  .brand .subline {
+    font-size: 8.5px;
+    letter-spacing: 0.24em;
+  }
+
+  .h-display {
+    font-size: clamp(40px, 13vw, 58px);
+    line-height: 1.02;
+  }
+
+  .h-section {
+    font-size: clamp(34px, 10.5vw, 48px);
+    line-height: 1.04;
+  }
+
+  .kicker {
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+  }
+
+  .kicker::before {
+    width: 20px;
   }
 
   .stats-grid,
@@ -1168,7 +1228,27 @@ h4 {
   }
 
   .hero-actions .btn {
-    flex: 1;
+    width: 100%;
+  }
+
+  .svc {
+    min-height: auto;
+    padding: 30px 24px 32px;
+  }
+
+  .client {
+    width: 86vw;
+    min-height: 320px;
+    padding: 26px 24px 30px;
+  }
+
+  .contact-card {
+    margin-top: 40px;
+  }
+
+  .footer-links {
+    width: 100%;
+    gap: 30px;
   }
 
   .scroll-cue {
