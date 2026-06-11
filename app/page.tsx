@@ -452,7 +452,7 @@ export default function Home() {
           <div className="glow violet-r" />
           <div className="wrap hero-grid">
             <div className="hero-copy">
-              <Reveal><span className="kicker mb-7">Real consulting for real-world business</span></Reveal>
+              <Reveal><span className="kicker mb-7">kittu consulting for real-world business</span></Reveal>
               <h1 className="h-display">
                 <SplitHeading>
                   {["Websites, automations,", "and digital systems for", "growing businesses."]}
