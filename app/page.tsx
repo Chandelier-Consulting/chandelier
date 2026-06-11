@@ -168,16 +168,186 @@ function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
   );
 }
 
-function HeroChandelier() {
+function CrystalDrop({ x, y, delay, len = 18 }: { x: number; y: number; delay: number; len?: number }) {
   return (
-    <figure className="hero-chandelier" aria-label="Crystal chandelier glowing in a grand interior">
-      <Image
-        src="/chandelier-hero.jpg"
-        alt="Crystal chandelier glowing in a warm interior"
-        fill
-        priority
-        sizes="(max-width: 980px) 92vw, 46vw"
-      />
+    <motion.g
+      animate={{ y: [0, 3, 0], rotate: [-1.5, 1.5, -1.5] }}
+      transition={{ duration: 4.5 + delay * 0.7, repeat: Infinity, ease: "easeInOut", delay }}
+      style={{ originX: `${x}px`, originY: `${y}px` }}
+    >
+      <line x1={x} y1={y} x2={x} y2={y + len} stroke="oklch(0.88 0.08 88 / 0.45)" strokeWidth="0.8" />
+      <ellipse cx={x} cy={y + len + 5} rx="2.8" ry="5" fill="oklch(0.92 0.1 88 / 0.55)" />
+      <ellipse cx={x} cy={y + len + 5} rx="1.2" ry="2.2" fill="white" opacity="0.55" />
+    </motion.g>
+  );
+}
+
+function HeroChandelier() {
+  const prefersReduced = useReducedMotion();
+  const glowAnim = prefersReduced ? {} : {
+    animate: { opacity: [0.7, 1, 0.7] },
+    transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+  };
+
+  const drops: { x: number; y: number; delay: number; len?: number }[] = [
+    // top tier
+    { x: 140, y: 148, delay: 0 }, { x: 160, y: 152, delay: 0.3 }, { x: 180, y: 148, delay: 0.6 },
+    { x: 200, y: 152, delay: 0.9 }, { x: 220, y: 148, delay: 1.2 },
+    // arms left
+    { x: 92, y: 178, delay: 0.2, len: 22 }, { x: 78, y: 192, delay: 0.5, len: 26 },
+    { x: 65, y: 205, delay: 0.8, len: 20 }, { x: 80, y: 208, delay: 1.1, len: 18 },
+    { x: 96, y: 212, delay: 1.4, len: 14 },
+    // arms right
+    { x: 268, y: 178, delay: 0.2, len: 22 }, { x: 282, y: 192, delay: 0.5, len: 26 },
+    { x: 295, y: 205, delay: 0.8, len: 20 }, { x: 280, y: 208, delay: 1.1, len: 18 },
+    { x: 264, y: 212, delay: 1.4, len: 14 },
+    // bottom tier drops
+    { x: 148, y: 240, delay: 0.1, len: 30 }, { x: 163, y: 244, delay: 0.35, len: 36 },
+    { x: 180, y: 246, delay: 0.6, len: 40 }, { x: 197, y: 244, delay: 0.85, len: 36 },
+    { x: 212, y: 240, delay: 1.1, len: 30 },
+    // inner cluster
+    { x: 170, y: 252, delay: 0.45, len: 28 }, { x: 190, y: 252, delay: 0.7, len: 28 },
+  ];
+
+  return (
+    <figure className="hero-chandelier" aria-label="Animated crystal chandelier">
+      <svg
+        viewBox="0 0 360 420"
+        xmlns="http://www.w3.org/2000/svg"
+        className="chandelier-svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <radialGradient id="ambient" cx="50%" cy="40%" r="55%">
+            <stop offset="0%" stopColor="oklch(0.96 0.14 88)" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="oklch(0.08 0.02 250)" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="bulbGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="oklch(0.98 0.14 88)" stopOpacity="0.9" />
+            <stop offset="60%" stopColor="oklch(0.82 0.18 72)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="oklch(0.6 0.1 60)" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="topGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="oklch(0.88 0.12 88)" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="oklch(0.6 0.08 88)" stopOpacity="0" />
+          </radialGradient>
+          <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="14" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <linearGradient id="stemGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="oklch(0.72 0.08 88 / 0.8)" />
+            <stop offset="100%" stopColor="oklch(0.55 0.06 88 / 0.4)" />
+          </linearGradient>
+          <linearGradient id="armGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="oklch(0.65 0.09 88 / 0.6)" />
+            <stop offset="50%" stopColor="oklch(0.82 0.12 88 / 0.85)" />
+            <stop offset="100%" stopColor="oklch(0.65 0.09 88 / 0.6)" />
+          </linearGradient>
+        </defs>
+
+        {/* Ambient room glow */}
+        <ellipse cx="180" cy="210" rx="170" ry="190" fill="url(#ambient)" />
+
+        {/* Ceiling mount */}
+        <motion.g {...(prefersReduced ? {} : glowAnim)}>
+          <rect x="162" y="30" width="36" height="8" rx="4" fill="url(#stemGrad)" />
+        </motion.g>
+
+        {/* Main stem */}
+        <rect x="178" y="38" width="4" height="60" fill="url(#stemGrad)" />
+
+        {/* Top canopy disc */}
+        <motion.g
+          animate={prefersReduced ? {} : { y: [0, 2, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ellipse cx="180" cy="102" rx="46" ry="10" fill="oklch(0.72 0.09 88 / 0.7)" />
+          <ellipse cx="180" cy="99" rx="44" ry="8" fill="oklch(0.82 0.11 88 / 0.5)" />
+          <ellipse cx="180" cy="97" rx="30" ry="5" fill="oklch(0.90 0.12 88 / 0.4)" />
+
+          {/* Curved arms */}
+          {/* Left arm */}
+          <path d="M180 105 Q130 120 88 165" stroke="url(#armGrad)" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M180 108 Q128 124 86 168" stroke="oklch(0.88 0.12 88 / 0.2)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          {/* Right arm */}
+          <path d="M180 105 Q230 120 272 165" stroke="url(#armGrad)" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M180 108 Q232 124 274 168" stroke="oklch(0.88 0.12 88 / 0.2)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          {/* Secondary arms */}
+          <path d="M155 110 Q110 132 72 178" stroke="url(#armGrad)" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+          <path d="M205 110 Q250 132 288 178" stroke="url(#armGrad)" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+
+          {/* Arm tip bulbs */}
+          {([
+            [88, 165], [72, 178], [272, 165], [288, 178]
+          ] as [number, number][]).map(([bx, by], i) => (
+            <g key={i} filter="url(#glow)">
+              <circle cx={bx} cy={by} r="7" fill="url(#bulbGlow)" />
+              <circle cx={bx} cy={by} r="4" fill="oklch(0.98 0.14 88)" />
+            </g>
+          ))}
+
+          {/* Mid-body ring */}
+          <ellipse cx="180" cy="175" rx="62" ry="13" fill="none" stroke="oklch(0.82 0.11 88 / 0.55)" strokeWidth="2" />
+          <ellipse cx="180" cy="175" rx="58" ry="10" fill="oklch(0.15 0.02 250 / 0.6)" />
+          <ellipse cx="180" cy="172" rx="56" ry="8" fill="oklch(0.78 0.1 88 / 0.2)" />
+
+          {/* Lower body */}
+          <rect x="171" y="175" width="18" height="45" rx="3" fill="url(#stemGrad)" />
+
+          {/* Bottom crown ring */}
+          <ellipse cx="180" cy="222" rx="54" ry="12" fill="none" stroke="oklch(0.82 0.11 88 / 0.6)" strokeWidth="2.5" />
+          <ellipse cx="180" cy="219" rx="50" ry="9" fill="oklch(0.78 0.10 88 / 0.18)" />
+
+          {/* Central pendant */}
+          <motion.g
+            animate={prefersReduced ? {} : { y: [0, 4, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            filter="url(#softglow)"
+          >
+            <ellipse cx="180" cy="285" rx="10" ry="18" fill="oklch(0.90 0.12 88 / 0.65)" />
+            <ellipse cx="180" cy="285" rx="5" ry="9" fill="oklch(0.98 0.14 88)" opacity="0.7" />
+            <ellipse cx="177" cy="279" rx="2" ry="4" fill="white" opacity="0.6" />
+          </motion.g>
+
+          {/* Central glowing bulb cluster */}
+          <g filter="url(#softglow)">
+            <circle cx="180" cy="220" r="22" fill="url(#topGlow)" opacity="0.6" />
+          </g>
+        </motion.g>
+
+        {/* Crystal drops — all sway independently */}
+        {drops.map((d, i) => (
+          <CrystalDrop key={i} {...d} />
+        ))}
+
+        {/* Floor light pool */}
+        <motion.ellipse
+          cx="180" cy="400" rx="80" ry="12"
+          fill="oklch(0.82 0.13 88 / 0.08)"
+          animate={prefersReduced ? {} : { opacity: [0.5, 1, 0.5], rx: [75, 85, 75] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Sparkle accents */}
+        {([
+          [130, 145, 0], [230, 145, 1], [95, 190, 0.5],
+          [265, 190, 1.2], [155, 235, 0.3], [205, 235, 0.8]
+        ] as [number, number, number][]).map(([sx, sy, sd], i) => (
+          <motion.g key={i}
+            animate={prefersReduced ? {} : { opacity: [0, 1, 0], scale: [0.5, 1.2, 0.5] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: sd + i * 0.4 }}
+            style={{ originX: `${sx}px`, originY: `${sy}px` }}
+          >
+            <line x1={sx - 5} y1={sy} x2={sx + 5} y2={sy} stroke="oklch(0.96 0.14 88 / 0.8)" strokeWidth="0.8" />
+            <line x1={sx} y1={sy - 5} x2={sx} y2={sy + 5} stroke="oklch(0.96 0.14 88 / 0.8)" strokeWidth="0.8" />
+          </motion.g>
+        ))}
+      </svg>
     </figure>
   );
 }
