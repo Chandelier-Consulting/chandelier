@@ -11,7 +11,6 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import Image from "next/image";
 import { ReactNode, useEffect, useId, useRef, useState } from "react";
 import { ContactForm } from "@/components/contact-form";
 
@@ -168,8 +167,7 @@ function ChandelierMark({ className = "h-9 w-9" }: { className?: string }) {
   );
 }
 
-/* Single faceted crystal drop — hangs from a ring at (x, ringY) */
-// Canvas-rendered chandelier — no SVG gradient issues, real pendulum physics
+
 
 
 function HeroChandelier() {
