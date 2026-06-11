@@ -351,21 +351,25 @@ function HeroChandelier() {
       ctx.beginPath(); ctx.ellipse(180,136,13,3,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
       ctx.beginPath(); ctx.ellipse(180,134,11,2.2,0,0,Math.PI*2); ctx.fillStyle=warm(0.65); ctx.fill();
 
-      // arms — flat [startX,startY, cp1x,cp1y,cp2x,cp2y,endX,endY, ...]
-      drawArm([172,108, 145,107,105,105,75,109, 59,112,51,104,55,96], 3.8);
-      drawArm([188,108, 215,107,255,105,285,109, 301,112,309,104,305,96], 3.8);
-      drawArm([173,110, 155,109,122,108,98,111, 85,113,79,107,83,100], 2.7);
-      drawArm([187,110, 205,109,238,108,262,111, 275,113,281,107,277,100], 2.7);
+      // arms — arc DOWN then curl UP at tip (classic chandelier silhouette)
+      // outer left: dips to ~y=152, tip rises to (50,88)
+      drawArm([170,110, 142,132,88,155,64,150, 48,144,40,114,48,88], 4.0);
+      // outer right: mirror
+      drawArm([190,110, 218,132,272,155,296,150, 312,144,320,114,312,88], 4.0);
+      // inner left: dips to ~y=135, tip rises to (90,98)
+      drawArm([173,110, 158,122,128,136,106,131, 92,126,85,112,88,100], 2.8);
+      // inner right: mirror
+      drawArm([187,110, 202,122,232,136,254,131, 268,126,275,112,272,100], 2.8);
 
-      // sockets + bulbs
-      ctx.beginPath(); ctx.ellipse(55,99,5.5,2.2,0,0,Math.PI*2); ctx.fillStyle=gold(0.92); ctx.fill();
-      drawBulb(55,91,5.5);
-      ctx.beginPath(); ctx.ellipse(305,99,5.5,2.2,0,0,Math.PI*2); ctx.fillStyle=gold(0.92); ctx.fill();
-      drawBulb(305,91,5.5);
-      ctx.beginPath(); ctx.ellipse(83,103,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
-      drawBulb(83,96,4);
-      ctx.beginPath(); ctx.ellipse(277,103,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
-      drawBulb(277,96,4);
+      // sockets + bulbs at arm tips
+      ctx.beginPath(); ctx.ellipse(48,93,5.5,2.2,0,0,Math.PI*2); ctx.fillStyle=gold(0.92); ctx.fill();
+      drawBulb(48,84,5.5);
+      ctx.beginPath(); ctx.ellipse(312,93,5.5,2.2,0,0,Math.PI*2); ctx.fillStyle=gold(0.92); ctx.fill();
+      drawBulb(312,84,5.5);
+      ctx.beginPath(); ctx.ellipse(88,104,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      drawBulb(88,96,4.2);
+      ctx.beginPath(); ctx.ellipse(272,104,4.5,1.8,0,0,Math.PI*2); ctx.fillStyle=gold(0.90); ctx.fill();
+      drawBulb(272,96,4.2);
 
       // outer ring + tier-1 crystals
       drawRing(180,205,100,12);
@@ -405,10 +409,10 @@ function HeroChandelier() {
 
       // glints
       if (!prefersReduced) {
-        drawGlint(55,87,  tt*1.4+0.00, 1.05);
-        drawGlint(305,87, tt*1.4+3.35, 1.05);
-        drawGlint(83,92,  tt*1.4+1.55, 0.82);
-        drawGlint(277,92, tt*1.4+4.90, 0.82);
+        drawGlint(48,80,  tt*1.4+0.00, 1.05);
+        drawGlint(312,80, tt*1.4+3.35, 1.05);
+        drawGlint(88,92,  tt*1.4+1.55, 0.82);
+        drawGlint(272,92, tt*1.4+4.90, 0.82);
         drawGlint(82,203, tt*1.4+2.50, 0.62);
         drawGlint(278,203,tt*1.4+5.85, 0.62);
         drawGlint(px+Math.sin(pendS.a)*ph, py+ph, tt*1.4+7.70, 0.88);
