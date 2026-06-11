@@ -17,8 +17,8 @@ Set these in Vercel for Production, Preview, and Development as appropriate.
 NEXT_PUBLIC_APP_URL=https://chandelierconsulting.dev
 
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
@@ -31,8 +31,8 @@ RESEND_API_KEY=
 
 - `NEXT_PUBLIC_APP_URL`: Public base URL for the deployed app. Use `http://localhost:3000` locally.
 - `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL.
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anon key. Safe for browser use, but still keep it in env.
-- `SUPABASE_SERVICE_ROLE_KEY`: Server-only Supabase service role key. Never expose this client-side.
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Supabase publishable key (`sb_publishable_...`). Safe for browser use with RLS enabled, but still keep it in env.
+- `SUPABASE_SECRET_KEY`: Server-only Supabase secret key (`sb_secret_...`). Never expose this client-side.
 - `STRIPE_SECRET_KEY`: Server-only Stripe secret key. Use `sk_live_...` in production and `sk_test_...` locally/staging.
 - `STRIPE_WEBHOOK_SECRET`: Signing secret from the Stripe webhook endpoint.
 - `ADMIN_EMAILS`: Comma-separated allowlist for `/admin` access, for example `owner@example.com,ops@example.com`.
@@ -45,8 +45,8 @@ Create `.env.local`:
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 ADMIN_EMAILS=admin@example.com
@@ -69,8 +69,8 @@ Open `http://localhost:3000`.
 
 1. Create a Supabase project.
 2. Copy the project URL into `NEXT_PUBLIC_SUPABASE_URL`.
-3. Copy the anon key into `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Copy the service role key into `SUPABASE_SERVICE_ROLE_KEY`.
+3. Copy the publishable key into `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+4. Copy the secret key into `SUPABASE_SECRET_KEY`.
 5. Run the migration:
 
 ```bash
