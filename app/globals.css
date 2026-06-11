@@ -1239,6 +1239,14 @@ h4 {
   color: var(--gold);
 }
 
+.admin-login-form {
+  max-width: 560px;
+}
+
+.error-note {
+  color: var(--amber);
+}
+
 .invoice-workbench {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.45fr);

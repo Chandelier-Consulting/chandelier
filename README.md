@@ -39,7 +39,7 @@ ADMIN_EMAILS=admin@example.com
 RESEND_API_KEY=
 ```
 
-`ADMIN_EMAILS` is a comma-separated allowlist. In production, wire Supabase Auth so the admin email is available to middleware as an authenticated session claim or cookie.
+`ADMIN_EMAILS` is a comma-separated allowlist. When it is set, `/admin` requires Supabase Auth through `/admin/login` and only allowlisted user emails can enter.
 
 ## Local Development
 

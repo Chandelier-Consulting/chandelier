@@ -111,9 +111,8 @@ The current guard is in `proxy.ts`.
 Behavior:
 
 - If `ADMIN_EMAILS` is empty, `/admin` is open.
-- If `ADMIN_EMAILS` is set, `/admin` requires an `admin_email` cookie whose value is in the allowlist.
-
-Before public launch, connect this to real Supabase Auth session data instead of relying on a manual cookie. Until then, set `ADMIN_EMAILS` and keep admin URLs private.
+- If `ADMIN_EMAILS` is set, `/admin` redirects to `/admin/login` until Supabase Auth provides a session for an allowlisted email.
+- The Supabase magic-link callback stores server-readable HTTP-only session cookies used by `proxy.ts`.
 
 ## Stripe Setup
 

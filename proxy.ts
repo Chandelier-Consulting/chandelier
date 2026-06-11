@@ -1,8 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  ADMIN_ACCESS_COOKIE,
+  describeAdminAccess,
+  getPublicSupabase,
+} from "@/lib/admin-auth";
 import { adminEmails } from "@/lib/env";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith("/admin")) {
+    return NextResponse.next();
+  }
+
+  if (request.nextUrl.pathname === "/admin/login") {
     return NextResponse.next();
   }
 
@@ -11,15 +20,23 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const email = request.cookies.get("admin_email")?.value.toLowerCase();
-  if (email && allowlist.includes(email)) {
+  const { client } = getPublicSupabase();
+  if (!client) {
+    const url = new URL("/admin/login", request.url);
+    url.searchParams.set("error", "Supabase auth is not configured.");
+    return NextResponse.redirect(url);
+  }
+
+  const accessToken = request.cookies.get(ADMIN_ACCESS_COOKIE)?.value;
+  const access = await describeAdminAccess(client, accessToken, allowlist);
+
+  if (access.ok) {
     return NextResponse.next();
   }
 
-  return NextResponse.json(
-    { error: "Admin access requires a Supabase-authenticated allowlisted email." },
-    { status: 401 },
-  );
+  const url = new URL("/admin/login", request.url);
+  url.searchParams.set("error", "Admin access requires a Supabase-authenticated allowlisted email.");
+  return NextResponse.redirect(url);
 }
 
 export const config = {

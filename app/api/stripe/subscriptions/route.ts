@@ -93,7 +93,7 @@ export async function POST(request: Request) {
   });
 
   const monthlyTotal = input.line_items.reduce(
-    (sum, item) => sum + item.quantity * item.unit_amount_cents,
+    (sum, item) => sum + Math.round(item.quantity * item.unit_amount_cents),
     0,
   );
 
