@@ -531,11 +531,13 @@ function AnimatedNumber({ value }: { value: number }) {
 
 function ServicesSection() {
   const ref = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
   const [desktop, setDesktop] = useState(false);
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.4 });
   const barScale = useTransform(progress, [0, 1], [0, 1]);
+  const sectionVisible = useInView(headingRef, { once: true, margin: "-5% 0px" });
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 901px)");
@@ -549,7 +551,7 @@ function ServicesSection() {
   return (
     <section className="section-pad" id="services">
       <div className="wrap">
-        <div className="sec-head">
+        <div className="sec-head" ref={headingRef}>
           <Reveal><span className="kicker mb-6">What we build</span></Reveal>
           <h2 className="h-section">
             <SplitHeading>{["Useful systems.", "Sharp execution."]}</SplitHeading>
@@ -563,7 +565,7 @@ function ServicesSection() {
           <div className="wrap">
             <div className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3">
               {services.map((service, index) => (
-                <ServiceCard key={service.title} index={index} desktop={desktop && !reduceMotion} progress={progress} service={service} />
+                <ServiceCard key={service.title} index={index} desktop={desktop && !reduceMotion} progress={progress} service={service} sectionVisible={sectionVisible} />
               ))}
             </div>
           </div>
@@ -579,27 +581,33 @@ function ServiceCard({
   desktop,
   progress,
   service,
+  sectionVisible,
 }: {
   index: number;
   desktop: boolean;
   progress: ReturnType<typeof useSpring>;
   service: (typeof services)[number];
+  sectionVisible: boolean;
 }) {
-  // Row-based stagger: cards in the same row light up together as you scroll
   const row = Math.floor(index / 3);
   const col = index % 3;
-  const start = row * 0.28 + col * 0.03 - 0.08;
-  const end = start + 0.16;
-  const opacity = useTransform(progress, [Math.max(0, start), end], [0.30, 1]);
-  const y = useTransform(progress, [start, end], [20, 0]);
-  const rotate = useTransform(progress, [start, end], [(index - 1) * 2.5, 0]);
-  const scale = useTransform(progress, [start, end], [0.97, 1]);
+  // Subtle scroll-driven positional parallax (y/rotate/scale only, no opacity)
+  const pStart = row * 0.28 + col * 0.03;
+  const pEnd = pStart + 0.20;
+  const y = useTransform(progress, [pStart, pEnd], [18, 0]);
+  const rotate = useTransform(progress, [pStart, pEnd], [(index - 1) * 2.5, 0]);
+  const scale = useTransform(progress, [pStart, pEnd], [0.97, 1]);
+  // Opacity: fires when heading enters view, row 0 immediately, row 1 after 0.28s, row 2 after 0.56s
+  const opacityDelay = row * 0.28 + col * 0.06;
 
   return (
     <motion.article
       className="svc"
       data-card
-      style={desktop ? { opacity, y, rotate, scale } : undefined}
+      initial={{ opacity: 0.22 }}
+      animate={{ opacity: sectionVisible ? 1 : 0.22 }}
+      transition={{ duration: 0.5, delay: opacityDelay, ease: "easeOut" }}
+      style={desktop ? { y, rotate, scale } : undefined}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
