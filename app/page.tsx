@@ -529,15 +529,6 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span ref={ref}>0</span>;
 }
 
-const svcContainer = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
-};
-const svcCard = {
-  hidden: { opacity: 0, y: 48, scale: 0.95 },
-  show:   { opacity: 1, y: 0,  scale: 1,    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
-};
-
 function ServicesSection() {
   const ref = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
@@ -560,17 +551,11 @@ function ServicesSection() {
       <section ref={ref} className="svc-track relative">
         <div className="svc-stage">
           <div className="wrap">
-            <motion.div
-              className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3"
-              variants={svcContainer}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, margin: "-80px 0px" }}
-            >
+            <div className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3">
               {services.map((service, index) => (
-                <ServiceCard key={service.title} index={index} service={service} />
+                <ServiceCard key={service.title} index={index} service={service} reduceMotion={!!reduceMotion} />
               ))}
-            </motion.div>
+            </div>
           </div>
           {!reduceMotion && <div className="scene-progress min-[901px]:block"><motion.span style={{ scaleX: barScale }} /></div>}
         </div>
@@ -582,15 +567,27 @@ function ServicesSection() {
 function ServiceCard({
   index,
   service,
+  reduceMotion,
 }: {
   index: number;
   service: (typeof services)[number];
+  reduceMotion: boolean;
 }) {
+  const cardRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "center center"],
+  });
+  const opacity = useTransform(scrollYProgress, [0, 0.7], [0.12, 1]);
+  const y      = useTransform(scrollYProgress, [0, 0.7], [55, 0]);
+  const scale  = useTransform(scrollYProgress, [0, 0.7], [0.93, 1]);
+
   return (
     <motion.article
+      ref={cardRef}
       className="svc"
       data-card
-      variants={svcCard}
+      style={reduceMotion ? undefined : { opacity, y, scale }}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
