@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildAdminRedirectUrl, describeAdminAccess, isAdminRequestAllowed } from "@/lib/admin-auth";
+import {
+  buildAdminRedirectUrl,
+  buildAdminRedirectUrlFromHeaders,
+  describeAdminAccess,
+  isAdminRequestAllowed,
+} from "@/lib/admin-auth";
 import {
   adminFormDefinitions,
   buildDashboardSummary,
@@ -86,6 +91,32 @@ function expectsAdminUrlAndApiAuthContracts() {
     throw new Error("admin redirect URL should use the incoming request origin");
   }
 
+  const proxiedRequestRedirectUrl = buildAdminRedirectUrl(
+    new Request("http://localhost:3000/api/auth/callback?next=/admin", {
+      headers: {
+        host: "preview.chandelierconsulting.dev",
+        "x-forwarded-host": "localhost:3000",
+        "x-forwarded-proto": "https",
+      },
+    }),
+    "/admin",
+  );
+  if (proxiedRequestRedirectUrl !== "https://preview.chandelierconsulting.dev/admin") {
+    throw new Error("admin redirect URL should recover the public host when request.url is local");
+  }
+
+  const forwardedRedirectUrl = buildAdminRedirectUrlFromHeaders(
+    new Headers({
+      host: "preview.chandelierconsulting.dev",
+      "x-forwarded-host": "localhost:3000",
+      "x-forwarded-proto": "https",
+    }),
+    "/api/auth/callback?next=/admin",
+  );
+  if (forwardedRedirectUrl !== "https://preview.chandelierconsulting.dev/api/auth/callback?next=/admin") {
+    throw new Error("admin redirect URL should prefer a public origin over an internal localhost origin");
+  }
+
   const allowedWithoutAllowlist = isAdminRequestAllowed(undefined, []);
   const deniedWithAllowlist = isAdminRequestAllowed(undefined, ["owner@example.com"]);
 
@@ -99,4 +130,4 @@ void expectsSectionRowsContract;
 void expectsCsvContract;
 void expectsAdminFormDefinitions;
 void expectsMutationPayloadContract;
-void expectsAdminUrlAndApiAuthContracts;
+expectsAdminUrlAndApiAuthContracts();
