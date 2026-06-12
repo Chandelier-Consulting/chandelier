@@ -306,8 +306,7 @@ function HeroChandelier() {
       tt += 0.008;
       const st = Math.sin(tt * 0.55) * 0.007;
       swayS.v += (st - swayS.a) * 0.002; swayS.v *= 0.98; swayS.a += swayS.v;
-      const pt = Math.sin(tt * 0.52 + 1.4) * 0.16;
-      pendS.v += (pt - pendS.a) * 0.0028; pendS.v *= 0.978; pendS.a += pendS.v;
+      // pendant is static
       t1data.forEach((d,i2) => {
         const tg = Math.sin(tt*0.5+d.p)*0.065;
         a1[i2].v += (tg-a1[i2].a)*0.003; a1[i2].v*=0.97; a1[i2].a+=a1[i2].v;
@@ -333,8 +332,7 @@ function HeroChandelier() {
           const tg = Math.sin(tt * 0.5 + d.p + 0.5) * 0.065;
           a2[i].v += (tg - a2[i].a) * 0.003; a2[i].v *= 0.97; a2[i].a += a2[i].v;
         });
-        const pt = Math.sin(tt * 0.52 + 1.4) * 0.16;
-        pendS.v += (pt - pendS.a) * 0.0028; pendS.v *= 0.978; pendS.a += pendS.v;
+        pendS.a = 0; pendS.v = 0;
       }
 
       radGlow(180, 270, 175, "rgba(200,160,50,0.18)");
