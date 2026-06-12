@@ -316,8 +316,8 @@ function HeroChandelier() {
           const tg = Math.sin(tt * 0.5 + d.p + 0.5) * 0.065;
           a2[i].v += (tg - a2[i].a) * 0.003; a2[i].v *= 0.97; a2[i].a += a2[i].v;
         });
-        const pt = Math.sin(tt * 0.78 + 1.4) * 0.13;
-        pendS.v += (pt - pendS.a) * 0.004; pendS.v *= 0.97; pendS.a += pendS.v;
+        const pt = Math.sin(tt * 0.52 + 1.4) * 0.10;
+        pendS.v += (pt - pendS.a) * 0.0028; pendS.v *= 0.978; pendS.a += pendS.v;
       }
 
       radGlow(180, 270, 175, "rgba(200,160,50,0.18)");
@@ -425,7 +425,7 @@ function HeroChandelier() {
 
       // grand pendant crystal — starts below inner ring bottom (r2cy+r2ry=332, py=334)
       ctx.save();
-      ctx.translate(px,py); ctx.rotate(pendS.a + pendS.v * 18);
+      ctx.translate(px,py); ctx.rotate(pendS.a - pendS.v * 14);
       const pw=16,ph=44;
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph); ctx.lineTo(-pw,ph*.4); ctx.closePath();
       ctx.fillStyle="rgba(232,200,70,0.92)"; ctx.fill();
