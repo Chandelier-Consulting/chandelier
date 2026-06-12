@@ -70,6 +70,7 @@ export async function POST(request: Request) {
   const invoice = await stripe.invoices.create({
     customer: customer.id,
     collection_method: "send_invoice",
+    pending_invoice_items_behavior: "include",
     days_until_due: input.due_date ? undefined : 14,
     due_date: input.due_date ? Math.floor(new Date(input.due_date).getTime() / 1000) : undefined,
     description: input.memo,
