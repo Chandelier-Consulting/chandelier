@@ -3,6 +3,9 @@ import {
   buildAdminAppUrl,
   buildAdminRedirectUrl,
   buildAdminRedirectUrlFromHeaders,
+  buildAdminSessionCookies,
+  ADMIN_ACCESS_COOKIE,
+  ADMIN_REFRESH_COOKIE,
   describeAdminAccess,
   isAdminRequestAllowed,
 } from "@/lib/admin-auth";
@@ -86,7 +89,7 @@ function expectsMutationPayloadContract() {
 function expectsAdminUrlAndApiAuthContracts() {
   const canonicalEmailRedirectUrl = buildAdminAppUrl("/api/auth/callback?next=/admin");
   if (canonicalEmailRedirectUrl !== "https://chandelierconsulting.dev/api/auth/callback?next=/admin") {
-    throw new Error("Supabase email redirect URL should use NEXT_PUBLIC_APP_URL");
+    throw new Error("Supabase callback URL should use NEXT_PUBLIC_APP_URL");
   }
 
   const redirectUrl = buildAdminRedirectUrl(
@@ -130,6 +133,30 @@ function expectsAdminUrlAndApiAuthContracts() {
   deniedWithAllowlist satisfies boolean;
 }
 
+function expectsAdminSessionCookieContract() {
+  const cookies = buildAdminSessionCookies({
+    access_token: "access-token",
+    refresh_token: "refresh-token",
+    expires_in: 3600,
+  });
+
+  if (cookies.length !== 2) {
+    throw new Error("admin password sign-in should persist both Supabase session tokens");
+  }
+
+  if (cookies[0]?.name !== ADMIN_ACCESS_COOKIE || cookies[0]?.value !== "access-token" || cookies[0]?.maxAge !== 3600) {
+    throw new Error("admin access cookie should use Supabase access token expiration");
+  }
+
+  if (
+    cookies[1]?.name !== ADMIN_REFRESH_COOKIE ||
+    cookies[1]?.value !== "refresh-token" ||
+    cookies[1]?.maxAge !== 60 * 60 * 24 * 30
+  ) {
+    throw new Error("admin refresh cookie should be persisted for 30 days");
+  }
+}
+
 void expectsAdminAccessContract;
 void expectsSupabaseDashboardContract;
 void expectsSectionRowsContract;
@@ -137,3 +164,4 @@ void expectsCsvContract;
 void expectsAdminFormDefinitions;
 void expectsMutationPayloadContract;
 expectsAdminUrlAndApiAuthContracts();
+expectsAdminSessionCookieContract();

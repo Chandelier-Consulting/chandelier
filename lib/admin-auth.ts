@@ -5,6 +5,12 @@ import { adminEmails, env, missingEnv } from "@/lib/env";
 export const ADMIN_ACCESS_COOKIE = "chandelier_admin_access_token";
 export const ADMIN_REFRESH_COOKIE = "chandelier_admin_refresh_token";
 
+type AdminSessionTokens = {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+};
+
 type AdminAccess =
   | { ok: true; email: string | null; user: User | null }
   | { ok: false; email: string | null; reason: string };
@@ -157,4 +163,23 @@ export function adminCookieOptions() {
     secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
     path: "/",
   };
+}
+
+export function buildAdminSessionCookies(session: AdminSessionTokens) {
+  const options = adminCookieOptions();
+
+  return [
+    {
+      name: ADMIN_ACCESS_COOKIE,
+      value: session.access_token,
+      options,
+      maxAge: session.expires_in,
+    },
+    {
+      name: ADMIN_REFRESH_COOKIE,
+      value: session.refresh_token,
+      options,
+      maxAge: 60 * 60 * 24 * 30,
+    },
+  ];
 }

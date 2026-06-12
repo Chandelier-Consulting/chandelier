@@ -1,19 +1,20 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { buildAdminAppUrl, getPublicSupabase } from "@/lib/admin-auth";
+import { buildAdminSessionCookies, describeAdminAccess, getPublicSupabase } from "@/lib/admin-auth";
 import { adminEmails } from "@/lib/env";
 
-async function sendLoginLink(formData: FormData) {
+async function signInWithPassword(formData: FormData) {
   "use server";
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const allowlist = adminEmails();
+  const password = String(formData.get("password") ?? "");
 
   if (!email) {
     redirect("/admin/login?error=Email is required.");
   }
 
-  if (allowlist.length > 0 && !allowlist.includes(email)) {
-    redirect("/admin/login?error=That email is not allowlisted for admin access.");
+  if (!password) {
+    redirect("/admin/login?error=Password is required.");
   }
 
   const { client, missing } = getPublicSupabase();
@@ -21,43 +22,57 @@ async function sendLoginLink(formData: FormData) {
     redirect(`/admin/login?error=Supabase auth is not configured: ${missing.join(", ")}`);
   }
 
-  const { error } = await client.auth.signInWithOtp({
+  const { data, error } = await client.auth.signInWithPassword({
     email,
-    options: {
-      emailRedirectTo: buildAdminAppUrl("/api/auth/callback?next=/admin"),
-    },
+    password,
   });
 
-  if (error) {
-    redirect(`/admin/login?error=${encodeURIComponent(error.message)}`);
+  if (error || !data.session) {
+    redirect(`/admin/login?error=${encodeURIComponent(error?.message ?? "Supabase did not return a session.")}`);
   }
 
-  redirect("/admin/login?sent=1");
+  const access = await describeAdminAccess(client, data.session.access_token, adminEmails());
+  if (!access.ok) {
+    redirect("/admin/login?error=That Supabase account is not allowlisted for admin access.");
+  }
+
+  const cookieStore = await cookies();
+  for (const cookie of buildAdminSessionCookies(data.session)) {
+    cookieStore.set(cookie.name, cookie.value, {
+      ...cookie.options,
+      maxAge: cookie.maxAge,
+    });
+  }
+
+  redirect("/admin");
 }
 
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; sent?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const { error, sent } = await searchParams;
+  const { error } = await searchParams;
 
   return (
     <section className="admin-page admin-login">
       <header>
         <p>Chandelier Consulting OS</p>
         <h1>Admin access</h1>
-        <span>Use an allowlisted Supabase Auth email to enter the admin portal.</span>
+        <span>Sign in with your Supabase admin account.</span>
       </header>
-      <form action={sendLoginLink} className="invoice-panel admin-login-form">
+      <form action={signInWithPassword} className="invoice-panel admin-login-form">
         <label className="field">
           Admin email
           <input name="email" type="email" autoComplete="email" required />
         </label>
+        <label className="field">
+          Password
+          <input name="password" type="password" autoComplete="current-password" required />
+        </label>
         <button className="btn" type="submit">
-          Send sign-in link
+          Sign in
         </button>
-        {sent ? <p className="note">Check your email for the Supabase sign-in link.</p> : null}
         {error ? <p className="note error-note">{error}</p> : null}
       </form>
     </section>

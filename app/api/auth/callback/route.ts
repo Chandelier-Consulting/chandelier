@@ -1,10 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
-  ADMIN_ACCESS_COOKIE,
-  ADMIN_REFRESH_COOKIE,
-  adminCookieOptions,
   buildAdminRedirectUrl,
+  buildAdminSessionCookies,
   describeAdminAccess,
   getPublicSupabase,
 } from "@/lib/admin-auth";
@@ -40,15 +38,12 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = await cookies();
-  const options = adminCookieOptions();
-  cookieStore.set(ADMIN_ACCESS_COOKIE, data.session.access_token, {
-    ...options,
-    maxAge: data.session.expires_in,
-  });
-  cookieStore.set(ADMIN_REFRESH_COOKIE, data.session.refresh_token, {
-    ...options,
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  for (const cookie of buildAdminSessionCookies(data.session)) {
+    cookieStore.set(cookie.name, cookie.value, {
+      ...cookie.options,
+      maxAge: cookie.maxAge,
+    });
+  }
 
   return NextResponse.redirect(buildAdminRedirectUrl(request, next.startsWith("/") ? next : "/admin"));
 }
