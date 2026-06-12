@@ -100,6 +100,10 @@ function originsFromHeaders(headersList: Headers) {
   ];
 }
 
+export function buildAdminAppUrl(path: string) {
+  return new URL(path, env.NEXT_PUBLIC_APP_URL).toString();
+}
+
 export function buildAdminRedirectUrl(request: Request, path: string) {
   const requestOrigin = new URL(request.url).origin;
   const origin = preferredPublicOrigin([

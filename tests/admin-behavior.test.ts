@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  buildAdminAppUrl,
   buildAdminRedirectUrl,
   buildAdminRedirectUrlFromHeaders,
   describeAdminAccess,
@@ -83,6 +84,11 @@ function expectsMutationPayloadContract() {
 }
 
 function expectsAdminUrlAndApiAuthContracts() {
+  const canonicalEmailRedirectUrl = buildAdminAppUrl("/api/auth/callback?next=/admin");
+  if (canonicalEmailRedirectUrl !== "https://chandelierconsulting.dev/api/auth/callback?next=/admin") {
+    throw new Error("Supabase email redirect URL should use NEXT_PUBLIC_APP_URL");
+  }
+
   const redirectUrl = buildAdminRedirectUrl(
     new Request("https://preview.chandelierconsulting.dev/admin/login"),
     "/api/auth/callback?next=/admin",
