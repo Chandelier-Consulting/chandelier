@@ -301,6 +301,23 @@ function HeroChandelier() {
     const pendS = {a:0,v:0};
     let tt = 0;
 
+    // Pre-warm physics so animation starts at steady state (no startup jerk)
+    for (let i = 0; i < 400; i++) {
+      tt += 0.008;
+      const st = Math.sin(tt * 0.55) * 0.007;
+      swayS.v += (st - swayS.a) * 0.002; swayS.v *= 0.98; swayS.a += swayS.v;
+      const pt = Math.sin(tt * 0.52 + 1.4) * 0.10;
+      pendS.v += (pt - pendS.a) * 0.0028; pendS.v *= 0.978; pendS.a += pendS.v;
+      t1data.forEach((d,i2) => {
+        const tg = Math.sin(tt*0.5+d.p)*0.065;
+        a1[i2].v += (tg-a1[i2].a)*0.003; a1[i2].v*=0.97; a1[i2].a+=a1[i2].v;
+      });
+      t2data.forEach((d,i2) => {
+        const tg = Math.sin(tt*0.5+d.p+0.5)*0.065;
+        a2[i2].v += (tg-a2[i2].a)*0.003; a2[i2].v*=0.97; a2[i2].a+=a2[i2].v;
+      });
+    }
+
     function frame() {
       ctx.clearRect(0, 0, W, H);
 
@@ -425,7 +442,7 @@ function HeroChandelier() {
 
       // grand pendant crystal — starts below inner ring bottom (r2cy+r2ry=332, py=334)
       ctx.save();
-      ctx.translate(px,py); ctx.rotate(pendS.a - pendS.v * 14);
+      ctx.translate(px,py); ctx.rotate(pendS.a + pendS.v * 350);
       const pw=16,ph=44;
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(pw,ph*.4); ctx.lineTo(0,ph); ctx.lineTo(-pw,ph*.4); ctx.closePath();
       ctx.fillStyle="rgba(232,200,70,0.92)"; ctx.fill();
