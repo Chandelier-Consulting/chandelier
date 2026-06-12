@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { buildAdminRedirectUrlFromHeaders, getPublicSupabase } from "@/lib/admin-auth";
+import { buildAdminAppUrl, getPublicSupabase } from "@/lib/admin-auth";
 import { adminEmails } from "@/lib/env";
 
 async function sendLoginLink(formData: FormData) {
@@ -25,10 +24,7 @@ async function sendLoginLink(formData: FormData) {
   const { error } = await client.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: buildAdminRedirectUrlFromHeaders(
-        await headers(),
-        "/api/auth/callback?next=/admin",
-      ),
+      emailRedirectTo: buildAdminAppUrl("/api/auth/callback?next=/admin"),
     },
   });
 
