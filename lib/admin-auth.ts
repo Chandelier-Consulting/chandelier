@@ -65,15 +65,54 @@ export function isAdminRequestAllowed(accessToken: string | undefined, allowlist
   return allowlist.length === 0 || Boolean(accessToken);
 }
 
+function headerValues(value: string | null) {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function originFromHost(host: string, proto: string) {
+  const origin = host.startsWith("http://") || host.startsWith("https://") ? host : `${proto}://${host}`;
+  return new URL(origin).origin;
+}
+
+function isLocalOrigin(origin: string) {
+  const { hostname } = new URL(origin);
+  return (
+    hostname === "localhost" ||
+    hostname === "0.0.0.0" ||
+    hostname === "::1" ||
+    hostname.startsWith("127.")
+  );
+}
+
+function preferredPublicOrigin(origins: string[]) {
+  return origins.find((candidate) => !isLocalOrigin(candidate)) ?? origins[0];
+}
+
+function originsFromHeaders(headersList: Headers) {
+  const proto = headerValues(headersList.get("x-forwarded-proto"))[0] ?? "https";
+  return [
+    ...headerValues(headersList.get("origin")).map((origin) => new URL(origin).origin),
+    ...headerValues(headersList.get("x-forwarded-host")).map((host) => originFromHost(host, proto)),
+    ...headerValues(headersList.get("host")).map((host) => originFromHost(host, proto)),
+  ];
+}
+
 export function buildAdminRedirectUrl(request: Request, path: string) {
-  const url = new URL(request.url);
-  return new URL(path, url.origin).toString();
+  const requestOrigin = new URL(request.url).origin;
+  const origin = preferredPublicOrigin([
+    ...originsFromHeaders(request.headers),
+    requestOrigin,
+    new URL(env.NEXT_PUBLIC_APP_URL).origin,
+  ]);
+  return new URL(path, origin).toString();
 }
 
 export function buildAdminRedirectUrlFromHeaders(headersList: Headers, path: string) {
-  const host = headersList.get("x-forwarded-host") ?? headersList.get("host");
-  const proto = headersList.get("x-forwarded-proto") ?? "https";
-  const origin = headersList.get("origin") ?? (host ? `${proto}://${host}` : env.NEXT_PUBLIC_APP_URL);
+  const origins = [...originsFromHeaders(headersList), new URL(env.NEXT_PUBLIC_APP_URL).origin];
+  const origin = preferredPublicOrigin(origins);
   return new URL(path, origin).toString();
 }
 
