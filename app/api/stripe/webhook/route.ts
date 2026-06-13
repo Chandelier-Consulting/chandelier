@@ -63,13 +63,13 @@ async function defaultBusinessUnitId(client: NonNullable<ReturnType<typeof getSe
   return row.data?.id ?? null;
 }
 
-async function clientForStripeCustomer(
+async function businessForStripeCustomer(
   client: NonNullable<ReturnType<typeof getServiceSupabase>["client"]>,
   customerId: string | null,
 ) {
   if (!customerId) return null;
   const row = await client
-    .from("clients")
+    .from("businesses")
     .select("id,business_unit_id")
     .eq("stripe_customer_id", customerId)
     .maybeSingle();
@@ -81,14 +81,23 @@ async function syncInvoiceFromStripe(
   invoice: Stripe.Invoice,
 ) {
   const customerId = stripeId(invoice.customer);
-  const clientRow = await clientForStripeCustomer(client, customerId);
-  const fallbackBusinessUnitId = clientRow?.business_unit_id ? null : await defaultBusinessUnitId(client);
+  const businessRow = await businessForStripeCustomer(client, customerId);
+  const metadataBusinessId = typeof invoice.metadata?.business_id === "string" && invoice.metadata.business_id
+    ? invoice.metadata.business_id
+    : null;
+  const existingInvoice = await client
+    .from("invoices")
+    .select("business_id,business_unit_id")
+    .eq("stripe_invoice_id", invoice.id)
+    .maybeSingle();
+  const businessId = businessRow?.id ?? metadataBusinessId ?? existingInvoice.data?.business_id ?? null;
+  const businessUnitId = businessRow?.business_unit_id ?? existingInvoice.data?.business_unit_id ?? await defaultBusinessUnitId(client);
 
   const synced = await client
     .from("invoices")
     .upsert({
-      business_unit_id: clientRow?.business_unit_id ?? fallbackBusinessUnitId,
-      client_id: clientRow?.id ?? null,
+      business_unit_id: businessUnitId,
+      business_id: businessId,
       stripe_invoice_id: invoice.id,
       hosted_invoice_url: invoice.hosted_invoice_url ?? null,
       status: invoice.status ?? "unknown",
@@ -100,7 +109,7 @@ async function syncInvoiceFromStripe(
       due_date: stripeDateToIsoDate(invoice.due_date),
       memo: invoice.description ?? invoice.metadata?.memo ?? null,
     }, { onConflict: "stripe_invoice_id" })
-    .select("id,business_unit_id,total_cents")
+    .select("id,business_unit_id,business_id,total_cents")
     .single();
 
   if (synced.error) {
@@ -140,6 +149,7 @@ async function recordInvoicePayment(
     .from("payments")
     .upsert({
       invoice_id: invoiceRow.id,
+      business_id: invoiceRow.business_id,
       stripe_payment_intent_id: paymentIntentId,
       amount_cents: amountPaid,
       status: invoice.status === "paid" ? "paid" : invoice.status ?? "pending",
@@ -155,6 +165,7 @@ async function recordInvoicePayment(
   if (invoice.status === "paid" && amountPaid > 0) {
     await client.from("cash_ledger_entries").insert({
       business_unit_id: invoiceRow.business_unit_id,
+      business_id: invoiceRow.business_id,
       entry_type: "invoice_payment",
       source_table: "invoices",
       source_id: invoiceRow.id,
@@ -182,7 +193,7 @@ async function recordChargeFee(
 
   const invoiceRow = await client
     .from("invoices")
-    .select("id,business_unit_id")
+    .select("id,business_unit_id,business_id")
     .eq("stripe_invoice_id", invoiceId)
     .maybeSingle();
 
@@ -197,6 +208,7 @@ async function recordChargeFee(
     .from("payments")
     .upsert({
       invoice_id: invoiceRow.data.id,
+      business_id: invoiceRow.data.business_id,
       stripe_payment_intent_id: paymentIntentId,
       amount_cents: charge.amount_captured,
       stripe_fee_cents: fee,
@@ -212,6 +224,7 @@ async function recordChargeFee(
 
   await client.from("cash_ledger_entries").insert({
     business_unit_id: invoiceRow.data.business_unit_id,
+    business_id: invoiceRow.data.business_id,
     entry_type: "stripe_fee",
     source_table: "payments",
     source_id: payment.data.id,
@@ -298,13 +311,14 @@ export async function POST(request: Request) {
     if (invoiceId) {
       const invoiceRow = await client
         .from("invoices")
-        .select("id")
+        .select("id,business_id")
         .eq("stripe_invoice_id", invoiceId)
         .maybeSingle();
 
       if (invoiceRow.data) {
         await client.from("payments").upsert({
           invoice_id: invoiceRow.data.id,
+          business_id: invoiceRow.data.business_id,
           stripe_payment_intent_id: paymentIntent.id,
           amount_cents: paymentIntent.amount_received || paymentIntent.amount,
           status: paymentIntent.status,

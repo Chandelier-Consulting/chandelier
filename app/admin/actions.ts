@@ -80,7 +80,18 @@ async function applyFileUploads(
 }
 
 function adminError(section: AdminSection, message: string) {
-  redirect(`/admin/${section}?error=${encodeURIComponent(message)}`);
+  const redirectSection = adminFormDefinitions[section]?.redirectSection ?? section;
+  redirect(`/admin/${redirectSection}?error=${encodeURIComponent(message)}`);
+}
+
+function adminSaved(section: AdminSection) {
+  const redirectSection = adminFormDefinitions[section]?.redirectSection ?? section;
+  redirect(`/admin/${redirectSection}?saved=1`);
+}
+
+function adminDeleted(section: AdminSection) {
+  const redirectSection = adminFormDefinitions[section]?.redirectSection ?? section;
+  redirect(`/admin/${redirectSection}?deleted=1`);
 }
 
 export async function createAdminRecord(formData: FormData) {
@@ -102,8 +113,8 @@ export async function createAdminRecord(formData: FormData) {
   const { error } = await client!.from(definition!.table).insert(payload);
   if (error) adminError(section, error.message);
 
-  revalidatePath(`/admin/${section}`);
-  redirect(`/admin/${section}?saved=1`);
+  revalidatePath(`/admin/${definition!.redirectSection}`);
+  adminSaved(section);
 }
 
 export async function updateAdminRecord(formData: FormData) {
@@ -127,8 +138,8 @@ export async function updateAdminRecord(formData: FormData) {
   const { error } = await client!.from(definition!.table).update(payload).eq("id", id);
   if (error) adminError(section, error.message);
 
-  revalidatePath(`/admin/${section}`);
-  redirect(`/admin/${section}?saved=1`);
+  revalidatePath(`/admin/${definition!.redirectSection}`);
+  adminSaved(section);
 }
 
 export async function deleteAdminRecord(formData: FormData) {
@@ -146,62 +157,6 @@ export async function deleteAdminRecord(formData: FormData) {
   const { error } = await client!.from(definition!.table).delete().eq("id", id);
   if (error) adminError(section, error.message);
 
-  revalidatePath(`/admin/${section}`);
-  redirect(`/admin/${section}?deleted=1`);
-}
-
-export async function updateLeadStatus(formData: FormData) {
-  await requireAdminActionAccess();
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "new");
-  if (!id) adminError("leads", "Missing lead id.");
-
-  const { client, missing } = getServiceSupabase();
-  if (!client) adminError("leads", `Supabase is not configured: ${missing.join(", ")}`);
-
-  const { error } = await client!.from("leads").update({ status }).eq("id", id);
-  if (error) adminError("leads", error.message);
-
-  revalidatePath("/admin/leads");
-  redirect("/admin/leads?saved=1");
-}
-
-export async function convertLeadToClient(formData: FormData) {
-  await requireAdminActionAccess();
-  const id = String(formData.get("id") ?? "");
-  if (!id) adminError("leads", "Missing lead id.");
-
-  const { client, missing } = getServiceSupabase();
-  if (!client) adminError("leads", `Supabase is not configured: ${missing.join(", ")}`);
-
-  const lead = await client!
-    .from("leads")
-    .select("*")
-    .eq("id", id)
-    .single();
-  if (lead.error) adminError("leads", lead.error.message);
-
-  const inserted = await client!
-    .from("clients")
-    .insert({
-      business_unit_id: lead.data.business_unit_id,
-      name: lead.data.business_name,
-      contact_name: lead.data.contact_name,
-      email: lead.data.email,
-      phone: lead.data.phone,
-      notes: lead.data.project_description,
-    })
-    .select("id")
-    .single();
-  if (inserted.error) adminError("leads", inserted.error.message);
-
-  const update = await client!
-    .from("leads")
-    .update({ status: "won" })
-    .eq("id", id);
-  if (update.error) adminError("leads", update.error.message);
-
-  revalidatePath("/admin/leads");
-  revalidatePath("/admin/clients");
-  redirect("/admin/clients?saved=1");
+  revalidatePath(`/admin/${definition!.redirectSection}`);
+  adminDeleted(section);
 }

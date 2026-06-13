@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   createFixedSubscriptionSchedule,
   createOneTimeInvoice,
-  syncCustomerToClient,
+  syncCustomerToBusiness,
 } from "@/lib/billing";
 import { requireAdminAccessForRequest } from "@/lib/admin-auth";
 import { getServiceSupabase } from "@/lib/supabase";
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const invoice =
       input.one_time_items.length > 0
         ? await createOneTimeInvoice(stripe, client, customer, {
-            client_id: input.client_id,
+            business_id: input.business_id,
             memo: input.memo,
             due_date: input.due_date,
             discount_cents: input.discount_cents,
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     const subscription =
       input.recurring_items.length > 0
         ? await createFixedSubscriptionSchedule(stripe, client, customer, {
-            client_id: input.client_id,
+            business_id: input.business_id,
             customer_email: input.customer_email,
             customer_name: input.customer_name,
             memo: input.memo,
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
           })
         : null;
 
-    await syncCustomerToClient(client, input, customer.id);
+    await syncCustomerToBusiness(client, input, customer.id);
 
     return NextResponse.json({
       id: invoice?.id ?? subscription?.id,

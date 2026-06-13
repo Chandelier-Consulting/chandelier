@@ -66,6 +66,7 @@ export async function POST(request: Request) {
       description: input.memo,
     },
     metadata: {
+      business_id: input.business_id ?? "",
       customer_email: input.customer_email,
       customer_name: input.customer_name,
       chandelier_billing_mode: "fixed_month_subscription",
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
   const { data, error } = await client
     .from("subscription_schedules")
     .insert({
-      client_id: input.client_id ?? null,
+      business_id: input.business_id ?? null,
       stripe_customer_id: customer.id,
       stripe_subscription_schedule_id: schedule.id,
       stripe_subscription_id: subscriptionId,
@@ -130,11 +131,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  if (input.client_id) {
+  if (input.business_id) {
     await client
-      .from("clients")
+      .from("businesses")
       .update({ stripe_customer_id: customer.id })
-      .eq("id", input.client_id);
+      .eq("id", input.business_id);
   }
 
   return NextResponse.json({

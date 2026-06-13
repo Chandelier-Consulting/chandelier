@@ -20,58 +20,59 @@ export type Database = {
         Insert: { name: string; slug: string; description?: string | null };
         Update: Partial<{ name: string; slug: string; description: string | null }>;
       };
-      leads: {
+      businesses: {
         Row: Row<{
+          name: string | null;
+          phone: string;
+          category: string | null;
+          address: string | null;
+          city: string | null;
+          state: string | null;
+          postal_code: string | null;
+          source_url: string | null;
+          notes: string | null;
+          website_found: boolean | null;
+          website_url: string | null;
           business_unit_id: string | null;
-          business_name: string;
-          contact_name: string;
-          email: string;
-          phone: string | null;
-          website: string | null;
-          budget: string | null;
-          requested_services: string[];
-          project_description: string;
-          status: string;
-        }>;
-        Insert: {
-          business_unit_id?: string | null;
-          business_name: string;
-          contact_name: string;
-          email: string;
-          phone?: string | null;
-          website?: string | null;
-          budget?: string | null;
-          requested_services: string[];
-          project_description: string;
-          status?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["leads"]["Insert"]>;
-      };
-      clients: {
-        Row: Row<{
-          business_unit_id: string | null;
-          name: string;
           contact_name: string | null;
           email: string | null;
-          phone: string | null;
-          notes: string | null;
+          lead_status: string;
+          requested_services: string[];
+          project_summary: string | null;
+          estimated_value_cents: number;
+          next_action: string | null;
+          next_follow_up_at: string | null;
           stripe_customer_id: string | null;
         }>;
         Insert: {
+          name?: string | null;
+          phone: string;
+          category?: string | null;
+          address?: string | null;
+          city?: string | null;
+          state?: string | null;
+          postal_code?: string | null;
+          source_url?: string | null;
+          notes?: string | null;
+          website_found?: boolean | null;
+          website_url?: string | null;
           business_unit_id?: string | null;
-          name: string;
           contact_name?: string | null;
           email?: string | null;
-          phone?: string | null;
-          notes?: string | null;
+          lead_status?: string;
+          requested_services?: string[];
+          project_summary?: string | null;
+          estimated_value_cents?: number;
+          next_action?: string | null;
+          next_follow_up_at?: string | null;
           stripe_customer_id?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
+        Update: Partial<Database["public"]["Tables"]["businesses"]["Insert"]>;
       };
       invoices: {
         Row: Row<{
           business_unit_id: string | null;
-          client_id: string | null;
+          business_id: string | null;
           stripe_invoice_id: string | null;
           hosted_invoice_url: string | null;
           status: string;
@@ -85,7 +86,7 @@ export type Database = {
         }>;
         Insert: {
           business_unit_id?: string | null;
-          client_id?: string | null;
+          business_id?: string | null;
           stripe_invoice_id?: string | null;
           hosted_invoice_url?: string | null;
           status?: string;
@@ -110,14 +111,9 @@ export type Database = {
 
 export type AdminSection =
   | "dashboard"
-  | "business-units"
-  | "leads"
-  | "clients"
-  | "proposals"
-  | "projects"
-  | "invoices"
+  | "crm"
+  | "finances"
   | "expenses"
   | "contractors"
   | "payouts"
-  | "reports"
   | "settings";

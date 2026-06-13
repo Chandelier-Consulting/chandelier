@@ -24,7 +24,7 @@ export async function createOneTimeInvoice(
   customer: Customer,
   input: Pick<
     CreateInvoiceInput,
-    | "client_id"
+    | "business_id"
     | "memo"
     | "due_date"
     | "discount_cents"
@@ -61,10 +61,12 @@ export async function createOneTimeInvoice(
   const invoice = await stripe.invoices.create({
     customer: customer.id,
     collection_method: "send_invoice",
+    pending_invoice_items_behavior: "include",
     days_until_due: input.due_date ? undefined : 14,
     due_date: input.due_date ? Math.floor(new Date(input.due_date).getTime() / 1000) : undefined,
     description: input.memo,
     metadata: {
+      business_id: input.business_id ?? "",
       discount_cents: String(input.discount_cents),
       deposit_cents: String(input.deposit_cents),
       retainer_cents: String(input.retainer_cents),
@@ -80,7 +82,7 @@ export async function createOneTimeInvoice(
   const { data, error } = await client
     .from("invoices")
     .upsert({
-      client_id: input.client_id ?? null,
+      business_id: input.business_id ?? null,
       stripe_invoice_id: invoice.id,
       hosted_invoice_url: invoice.hosted_invoice_url ?? null,
       status: invoice.status ?? "draft",
@@ -131,7 +133,12 @@ export async function createFixedSubscriptionSchedule(
   customer: Customer,
   input: Pick<
     CreateSubscriptionInput,
-    "client_id" | "customer_email" | "customer_name" | "memo" | "months" | "days_until_due"
+    | "business_id"
+    | "customer_email"
+    | "customer_name"
+    | "memo"
+    | "months"
+    | "days_until_due"
   > & {
     line_items: Array<LineItem & { quantity: number }>;
   },
@@ -159,6 +166,7 @@ export async function createFixedSubscriptionSchedule(
       description: input.memo,
     },
     metadata: {
+      business_id: input.business_id ?? "",
       customer_email: input.customer_email,
       customer_name: input.customer_name,
       chandelier_billing_mode: "fixed_month_subscription",
@@ -203,7 +211,7 @@ export async function createFixedSubscriptionSchedule(
   const { data, error } = await client
     .from("subscription_schedules")
     .insert({
-      client_id: input.client_id ?? null,
+      business_id: input.business_id ?? null,
       stripe_customer_id: customer.id,
       stripe_subscription_schedule_id: schedule.id,
       stripe_subscription_id: subscriptionId,
@@ -229,15 +237,15 @@ export async function createFixedSubscriptionSchedule(
   };
 }
 
-export async function syncCustomerToClient(
+export async function syncCustomerToBusiness(
   client: SupabaseClient,
-  input: Pick<CreateCombinedBillingInput, "client_id">,
+  input: Pick<CreateCombinedBillingInput, "business_id">,
   stripeCustomerId: string,
 ) {
-  if (!input.client_id) return;
+  if (!input.business_id) return;
 
   await client
-    .from("clients")
+    .from("businesses")
     .update({ stripe_customer_id: stripeCustomerId })
-    .eq("id", input.client_id);
+    .eq("id", input.business_id);
 }

@@ -178,8 +178,9 @@ function HeroChandelier() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const drawingContext = canvas.getContext("2d");
+    if (!drawingContext) return;
+    const ctx = drawingContext;
 
     const W = 360, H = 490;
     const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 2);
@@ -568,8 +569,8 @@ function ServicesSection() {
         <div className="svc-stage">
           <div className="wrap">
             <div className="grid grid-cols-1 gap-6 min-[981px]:grid-cols-3">
-              {services.map((service, index) => (
-                <ServiceCard key={service.title} index={index} service={service} reduceMotion={!!reduceMotion} />
+              {services.map((service) => (
+                <ServiceCard key={service.title} service={service} reduceMotion={!!reduceMotion} />
               ))}
             </div>
           </div>
@@ -581,11 +582,9 @@ function ServicesSection() {
 }
 
 function ServiceCard({
-  index,
   service,
   reduceMotion,
 }: {
-  index: number;
   service: (typeof services)[number];
   reduceMotion: boolean;
 }) {

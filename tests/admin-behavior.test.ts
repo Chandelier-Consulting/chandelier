@@ -31,7 +31,20 @@ async function expectsAdminAccessContract() {
 function expectsSupabaseDashboardContract() {
   const summary = buildDashboardSummary({
     businessUnits: [{ id: "1", name: "AI Consulting", slug: "ai", revenueCents: 125000 }],
-    leads: [{ status: "new", project_description: "Test", created_at: "2026-06-11" }],
+    businesses: [
+      {
+        lead_status: "lead",
+        project_summary: "Test",
+        estimated_value_cents: 125000,
+        created_at: "2026-06-11",
+      },
+      {
+        lead_status: "active",
+        project_summary: "Build",
+        estimated_value_cents: 500000,
+        created_at: "2026-06-11",
+      },
+    ],
     invoices: [{ status: "open", total_cents: 50000, created_at: "2026-06-11" }],
     expenses: [{ amount_cents: 10000, category: "software", created_at: "2026-06-11" }],
     payouts: [{ amount_cents: 25000, status: "tracked", created_at: "2026-06-11" }],
@@ -40,20 +53,33 @@ function expectsSupabaseDashboardContract() {
 
   summary.metrics[0] satisfies { label: string; value: string };
   summary.pipeline[0] satisfies { stage: string; count: number; valueCents: number };
+  if (summary.pipeline.find((item) => item.stage === "active")?.valueCents !== 500000) {
+    throw new Error("Dashboard pipeline should summarize business estimated value by status");
+  }
   summary.businessUnits[0].revenueCents satisfies number;
 }
 
 function expectsSectionRowsContract() {
-  const rows = buildSectionRows("clients", [
-    { name: "Rivera Bakery", contact_name: "Jordan", email: "jordan@example.com" },
+  const rows = buildSectionRows("crm", [
+    {
+      name: "Rivera Bakery",
+      contact_name: "Jordan",
+      email: "jordan@example.com",
+      lead_status: "proposal",
+      estimated_value_cents: 750000,
+      next_action: "Send deposit invoice",
+    },
   ]);
 
   rows[0] satisfies { title: string; meta: string[]; href?: string };
+  if (rows[0]?.amount !== "$7,500") {
+    throw new Error("CRM rows should show estimated value from businesses");
+  }
 }
 
 function expectsCsvContract() {
-  const report = reportDefinitions.find((item) => item.fileName === "clients.csv");
-  if (!report) throw new Error("clients report is missing");
+  const report = reportDefinitions.find((item) => item.fileName === "businesses.csv");
+  if (!report) throw new Error("businesses report is missing");
 
   const csv = toCsv([
     { name: "Rivera, Bakery", email: "jordan@example.com" },
@@ -64,7 +90,7 @@ function expectsCsvContract() {
 }
 
 function expectsAdminFormDefinitions() {
-  adminFormDefinitions.leads?.fields[0] satisfies { name: string; label: string } | undefined;
+  adminFormDefinitions.crm?.fields[0] satisfies { name: string; label: string } | undefined;
   adminFormDefinitions.expenses?.fields.find((field) => field.name === "tax_deductible")?.type satisfies
     | string
     | undefined;
