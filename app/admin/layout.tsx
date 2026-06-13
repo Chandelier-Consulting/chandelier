@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { adminSections } from "@/lib/admin-data";
+import { AdminNav } from "@/components/admin-nav";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,13 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           Chandelier OS
           <span>Perceo Inc.</span>
         </Link>
-        <nav>
-          {adminSections.map((section) => (
-            <Link key={section.slug} href={`/admin/${section.slug}`}>
-              {section.label}
-            </Link>
-          ))}
-        </nav>
+        <AdminNav />
       </aside>
       <main>{children}</main>
     </div>
