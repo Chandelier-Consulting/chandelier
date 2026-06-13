@@ -159,6 +159,210 @@ export const adminFormDefinitions: Partial<Record<AdminSection, AdminFormDefinit
   },
 };
 
+const demoBusinessUnits: AnyRow[] = [
+  { id: "bu-chandelier", name: "Chandelier Consulting", slug: "chandelier-consulting", created_at: "2026-06-01" },
+  { id: "bu-ai", name: "AI Consulting", slug: "ai-consulting", created_at: "2026-06-01" },
+  { id: "bu-tools", name: "Internal Tools", slug: "internal-tools", created_at: "2026-06-01" },
+];
+
+const demoBusinesses: AnyRow[] = [
+  {
+    id: "biz-everly",
+    business_unit_id: "bu-chandelier",
+    name: "Everly Hospitality Group",
+    contact_name: "Jordan Reeves",
+    email: "jordan@everlyhg.com",
+    phone: "415-555-0184",
+    website_url: "https://everly.example",
+    category: "Hospitality",
+    lead_status: "active",
+    requested_services: ["Website", "Booking automation", "Invoice workflows"],
+    project_summary: "New restaurant group site, CRM intake, and recurring operations support.",
+    estimated_value_cents: 2475000,
+    next_action: "Finalize invoice package",
+    next_follow_up_at: "2026-06-18",
+    stripe_customer_id: "cus_demo_everly",
+    notes: "Decision maker wants one invoice and six months of support.",
+    created_at: "2026-06-10",
+  },
+  {
+    id: "biz-luxe",
+    business_unit_id: "bu-ai",
+    name: "Luxe Retail Group",
+    contact_name: "Mina Chen",
+    email: "ops@luxeretail.example",
+    phone: "212-555-0138",
+    category: "Retail",
+    lead_status: "proposal",
+    requested_services: ["AI product assistant", "Dashboard"],
+    project_summary: "Internal assistant for store teams plus inventory dashboard.",
+    estimated_value_cents: 3150000,
+    next_action: "Send revised scope",
+    next_follow_up_at: "2026-06-20",
+    stripe_customer_id: "cus_demo_luxe",
+    created_at: "2026-06-08",
+  },
+  {
+    id: "biz-northpoint",
+    business_unit_id: "bu-tools",
+    name: "Northpoint Advisors",
+    contact_name: "Sam Patel",
+    email: "sam@northpoint.example",
+    phone: "646-555-0192",
+    category: "Financial services",
+    lead_status: "completed",
+    requested_services: ["Client portal", "Reporting"],
+    estimated_value_cents: 1280000,
+    next_action: "Collect final payment",
+    next_follow_up_at: "2026-06-15",
+    created_at: "2026-06-03",
+  },
+];
+
+const demoInvoices: AnyRow[] = [
+  {
+    id: "inv-1057",
+    business_unit_id: "bu-chandelier",
+    business_id: "biz-everly",
+    stripe_invoice_id: "INV-2026-1057",
+    hosted_invoice_url: "https://dashboard.stripe.com/invoices/in_demo_1057",
+    status: "draft",
+    subtotal_cents: 2475000,
+    discount_cents: 0,
+    deposit_cents: 0,
+    retainer_cents: 0,
+    total_cents: 2475000,
+    due_date: "2026-06-27",
+    memo: "Implementation and support package.",
+    created_at: "2026-06-12",
+  },
+  {
+    id: "inv-1056",
+    business_unit_id: "bu-ai",
+    business_id: "biz-luxe",
+    stripe_invoice_id: "INV-2026-1056",
+    hosted_invoice_url: "https://dashboard.stripe.com/invoices/in_demo_1056",
+    status: "sent",
+    subtotal_cents: 1425000,
+    discount_cents: 0,
+    deposit_cents: 0,
+    retainer_cents: 0,
+    total_cents: 1425000,
+    due_date: "2026-06-24",
+    memo: "Discovery sprint and prototype.",
+    created_at: "2026-06-09",
+  },
+  {
+    id: "inv-1055",
+    business_unit_id: "bu-tools",
+    business_id: "biz-northpoint",
+    stripe_invoice_id: "INV-2026-1055",
+    hosted_invoice_url: "https://dashboard.stripe.com/invoices/in_demo_1055",
+    status: "paid",
+    subtotal_cents: 640000,
+    discount_cents: 0,
+    deposit_cents: 0,
+    retainer_cents: 0,
+    total_cents: 640000,
+    due_date: "2026-06-12",
+    memo: "Reporting portal milestone.",
+    created_at: "2026-06-01",
+  },
+];
+
+const demoPayments: AnyRow[] = [
+  {
+    id: "pay-0678",
+    business_id: "biz-northpoint",
+    invoice_id: "inv-1055",
+    amount_cents: 640000,
+    stripe_fee_cents: 18890,
+    status: "paid",
+    paid_at: "2026-06-11",
+    created_at: "2026-06-11",
+  },
+  {
+    id: "pay-0677",
+    business_id: "biz-everly",
+    amount_cents: 1000000,
+    stripe_fee_cents: 29100,
+    status: "succeeded",
+    paid_at: "2026-06-03",
+    created_at: "2026-06-03",
+  },
+];
+
+const demoExpenses: AnyRow[] = [
+  {
+    id: "exp-001",
+    business_unit_id: "bu-chandelier",
+    business_id: "biz-everly",
+    category: "software",
+    amount_cents: 22900,
+    tax_deductible: true,
+    reimbursable: true,
+    business_purpose: "Design system and analytics tooling",
+    spent_at: "2026-06-09",
+    created_at: "2026-06-09",
+  },
+  {
+    id: "exp-002",
+    business_unit_id: "bu-ai",
+    business_id: "biz-luxe",
+    category: "ai_credits",
+    amount_cents: 48750,
+    tax_deductible: true,
+    reimbursable: false,
+    business_purpose: "Prototype model usage",
+    spent_at: "2026-06-07",
+    created_at: "2026-06-07",
+  },
+];
+
+const demoContractors: AnyRow[] = [
+  {
+    id: "con-avery",
+    business_unit_id: "bu-chandelier",
+    name: "Avery Studio",
+    email: "billing@averystudio.example",
+    tax_form_status: "received",
+    payment_method_notes: "ACH on file",
+    notes: "Design partner for hospitality work.",
+    created_at: "2026-06-01",
+  },
+  {
+    id: "con-mar",
+    business_unit_id: "bu-ai",
+    name: "Mar Systems",
+    email: "ops@marsystems.example",
+    tax_form_status: "requested",
+    payment_method_notes: "Wire details pending",
+    notes: "Automation implementation contractor.",
+    created_at: "2026-06-02",
+  },
+];
+
+const demoPayouts: AnyRow[] = [
+  {
+    id: "payout-001",
+    contractor_id: "con-avery",
+    business_id: "biz-everly",
+    amount_cents: 540000,
+    status: "approved",
+    paid_at: null,
+    created_at: "2026-06-10",
+  },
+  {
+    id: "payout-002",
+    contractor_id: "con-mar",
+    business_id: "biz-luxe",
+    amount_cents: 320000,
+    status: "tracked",
+    paid_at: null,
+    created_at: "2026-06-08",
+  },
+];
+
 function cents(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
@@ -477,6 +681,82 @@ export async function loadAdminOptions(client: SupabaseClient) {
     businessUnits: businessUnits.map((row) => ({ value: String(row.id), label: text(row, "name") })),
     businesses: businesses.map((row) => ({ value: String(row.id), label: text(row, "name", "Unnamed business") })),
     contractors: contractors.map((row) => ({ value: String(row.id), label: text(row, "name") })),
+  };
+}
+
+export function shouldUseLocalAdminDemo(
+  missing: string[],
+  nodeEnv = process.env.NODE_ENV,
+  demoFlag = process.env.ADMIN_DEMO_DATA,
+) {
+  return missing.length > 0 && (nodeEnv !== "production" || demoFlag === "1" || demoFlag === "true");
+}
+
+export function loadDemoAdminDashboard() {
+  const businessUnitRevenue = new Map<string, number>();
+  for (const invoice of demoInvoices) {
+    const businessUnitId = typeof invoice.business_unit_id === "string" ? invoice.business_unit_id : null;
+    if (businessUnitId) {
+      businessUnitRevenue.set(businessUnitId, (businessUnitRevenue.get(businessUnitId) ?? 0) + cents(invoice.total_cents));
+    }
+  }
+
+  return buildDashboardSummary({
+    businessUnits: demoBusinessUnits.map((unit) => ({
+      id: String(unit.id),
+      name: text(unit, "name"),
+      slug: text(unit, "slug"),
+      revenueCents: businessUnitRevenue.get(String(unit.id)) ?? 0,
+    })),
+    businesses: demoBusinesses,
+    invoices: demoInvoices,
+    expenses: demoExpenses,
+    payouts: demoPayouts,
+    payments: demoPayments,
+  });
+}
+
+export function loadDemoAdminRecords(section: AdminSection) {
+  if (section === "crm") return demoBusinesses;
+  if (section === "expenses") return demoExpenses;
+  if (section === "contractors") return demoContractors;
+  if (section === "payouts") {
+    return demoPayouts.map((payout) => ({
+      ...payout,
+      contractor_name: demoContractors.find((contractor) => contractor.id === payout.contractor_id)?.name,
+      business_name: demoBusinesses.find((business) => business.id === payout.business_id)?.name,
+    }));
+  }
+  return [];
+}
+
+export function loadDemoFinanceData() {
+  const openInvoices = demoInvoices.filter((invoice) => !["paid", "void", "voided", "uncollectible"].includes(String(invoice.status ?? "")));
+  const openPayouts = demoPayouts.filter((payout) => !["paid", "void"].includes(String(payout.status ?? "")));
+  const reimbursables = demoExpenses.filter((expense) => Boolean(expense.reimbursable));
+
+  return {
+    businesses: demoBusinesses,
+    invoices: demoInvoices,
+    payments: demoPayments,
+    expenses: demoExpenses,
+    payouts: demoPayouts,
+    contractors: demoContractors,
+    summary: {
+      openInvoiceCents: openInvoices.reduce((sum, invoice) => sum + cents(invoice.total_cents), 0),
+      contractorOwedCents: openPayouts.reduce((sum, payout) => sum + cents(payout.amount_cents), 0),
+      reimbursableCents: reimbursables.reduce((sum, expense) => sum + cents(expense.amount_cents), 0),
+      paidCents: demoPayments.filter((payment) => String(payment.status ?? "").includes("paid") || String(payment.status ?? "") === "succeeded")
+        .reduce((sum, payment) => sum + cents(payment.amount_cents), 0),
+    },
+  };
+}
+
+export function loadDemoAdminOptions() {
+  return {
+    businessUnits: demoBusinessUnits.map((row) => ({ value: String(row.id), label: text(row, "name") })),
+    businesses: demoBusinesses.map((row) => ({ value: String(row.id), label: text(row, "name", "Unnamed business") })),
+    contractors: demoContractors.map((row) => ({ value: String(row.id), label: text(row, "name") })),
   };
 }
 

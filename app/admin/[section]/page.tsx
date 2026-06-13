@@ -13,10 +13,15 @@ import {
   crmStatuses,
   formatAdminCurrency,
   loadAdminDashboard,
+  loadDemoAdminDashboard,
+  loadDemoAdminOptions,
+  loadDemoAdminRecords,
+  loadDemoFinanceData,
   loadAdminOptions,
   loadAdminRecords,
   loadFinanceData,
   reportDefinitions,
+  shouldUseLocalAdminDemo,
   type AdminField,
   type AdminFormDefinition,
   type AdminRow,
@@ -25,6 +30,7 @@ import { getServiceSupabase } from "@/lib/supabase";
 import type { AdminSection } from "@/lib/types";
 
 const sectionSlugs = adminSections.map((section) => section.slug);
+type AdminClient = NonNullable<ReturnType<typeof getServiceSupabase>["client"]>;
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +56,19 @@ export default async function AdminSectionPage({
   const { client, missing } = getServiceSupabase();
 
   if (!client) {
+    if (shouldUseLocalAdminDemo(missing)) {
+      return (
+        <section className="admin-page">
+          <AdminHeader current={current} />
+          <LocalDemoNotice missing={missing} />
+          {section === "dashboard" ? <Dashboard demo /> : null}
+          {section === "crm" ? <Crm demo /> : null}
+          {section === "finances" ? <Finances demo initialBusinessId={notice.business} /> : null}
+          {section === "settings" ? <Settings /> : null}
+        </section>
+      );
+    }
+
     return (
       <section className="admin-page">
         <AdminHeader current={current} />
@@ -72,16 +91,18 @@ export default async function AdminSectionPage({
 
 function AdminHeader({ current }: { current: { label: string; description: string } }) {
   return (
-    <header>
-      <p>Chandelier Consulting OS</p>
-      <h1>{current.label}</h1>
+    <header className="admin-header">
+      <div>
+        <p>Chandelier Consulting OS</p>
+        <h1>{current.label}</h1>
+      </div>
       <span>{current.description}</span>
     </header>
   );
 }
 
-async function Dashboard({ client }: { client: NonNullable<ReturnType<typeof getServiceSupabase>["client"]> }) {
-  const dashboard = await loadAdminDashboard(client);
+async function Dashboard({ client, demo }: { client?: AdminClient; demo?: boolean }) {
+  const dashboard = demo ? loadDemoAdminDashboard() : await loadAdminDashboard(client!);
 
   return (
     <>
@@ -117,20 +138,22 @@ async function Dashboard({ client }: { client: NonNullable<ReturnType<typeof get
   );
 }
 
-async function Crm({ client }: { client: NonNullable<ReturnType<typeof getServiceSupabase>["client"]> }) {
-  const [records, options] = await Promise.all([
-    loadAdminRecords(client, "crm"),
-    loadAdminOptions(client),
-  ]);
+async function Crm({ client, demo }: { client?: AdminClient; demo?: boolean }) {
+  const [records, options] = demo
+    ? [loadDemoAdminRecords("crm"), loadDemoAdminOptions()]
+    : await Promise.all([
+        loadAdminRecords(client!, "crm"),
+        loadAdminOptions(client!),
+      ]);
   const rows = buildSectionRows("crm", records);
   const definition = adminFormDefinitions.crm!;
 
   return (
     <div className="admin-workspace">
       <CrmPipeline rows={rows} />
-      <section className="admin-editor">
+      <section className="admin-editor" aria-labelledby="add-business-title">
         <article className="admin-form-card">
-          <h2>Add business</h2>
+          <h2 id="add-business-title">Add business</h2>
           <AdminRecordForm action={createAdminRecord} definition={definition} options={options} section="crm" />
         </article>
       </section>
@@ -150,13 +173,15 @@ async function Crm({ client }: { client: NonNullable<ReturnType<typeof getServic
 
 function CrmPipeline({ rows }: { rows: AdminRow[] }) {
   return (
-    <div className="admin-kanban compact">
+    <div className="admin-kanban compact" aria-label="CRM pipeline by status">
       {crmStatuses.map((status) => {
         const statusRows = rows.filter((row) => row.meta[0]?.toLowerCase() === status);
         return (
           <article key={status}>
-            <h2>{status}</h2>
-            <strong>{statusRows.length}</strong>
+            <div>
+              <h2>{status}</h2>
+              <strong>{statusRows.length}</strong>
+            </div>
             {statusRows.slice(0, 4).map((row) => (
               <p key={`${status}-${row.id}`}>{row.title}</p>
             ))}
@@ -169,18 +194,28 @@ function CrmPipeline({ rows }: { rows: AdminRow[] }) {
 
 async function Finances({
   client,
+  demo,
   initialBusinessId,
 }: {
-  client: NonNullable<ReturnType<typeof getServiceSupabase>["client"]>;
+  client?: AdminClient;
+  demo?: boolean;
   initialBusinessId?: string;
 }) {
-  const [finance, options, expenseRecords, contractorRecords, payoutRecords] = await Promise.all([
-    loadFinanceData(client),
-    loadAdminOptions(client),
-    loadAdminRecords(client, "expenses"),
-    loadAdminRecords(client, "contractors"),
-    loadAdminRecords(client, "payouts"),
-  ]);
+  const [finance, options, expenseRecords, contractorRecords, payoutRecords] = demo
+    ? [
+        loadDemoFinanceData(),
+        loadDemoAdminOptions(),
+        loadDemoAdminRecords("expenses"),
+        loadDemoAdminRecords("contractors"),
+        loadDemoAdminRecords("payouts"),
+      ]
+    : await Promise.all([
+        loadFinanceData(client!),
+        loadAdminOptions(client!),
+        loadAdminRecords(client!, "expenses"),
+        loadAdminRecords(client!, "contractors"),
+        loadAdminRecords(client!, "payouts"),
+      ]);
   const businesses = finance.businesses.map((business) => ({
     id: String(business.id),
     name: typeof business.name === "string" ? business.name : "Unnamed business",
@@ -235,7 +270,7 @@ async function Finances({
         </article>
       </div>
 
-      <section>
+      <section className="admin-section">
         <h2 className="admin-section-title">Open invoices</h2>
         <MoneyRows rows={finance.invoices.filter((invoice) => !["paid", "void", "voided", "uncollectible"].includes(String(invoice.status ?? "")))} />
       </section>
@@ -309,6 +344,14 @@ function AdminNotice({
   return null;
 }
 
+function LocalDemoNotice({ missing }: { missing: string[] }) {
+  return (
+    <p className="admin-notice">
+      Local demo data active. Missing Supabase environment: {missing.join(", ")}.
+    </p>
+  );
+}
+
 function RecordGrid({
   actionSection,
   definition,
@@ -333,19 +376,27 @@ function RecordGrid({
   }
 
   return (
-    <div className="admin-grid admin-records">
+    <section className="admin-records" aria-label={emptyTitle.replace("No ", "")}>
       {rows.map((row, index) => (
         <article key={row.id ?? `${row.title}-${index}`}>
-          <h2>{row.title}</h2>
-          {row.meta.map((item) => (
-            <p key={item}>{item}</p>
-          ))}
-          {row.amount ? <strong>{row.amount}</strong> : null}
-          {showInvoiceLink && row.id ? (
-            <Link className="btn ghost" href={`/admin/finances?business=${row.id}`}>
-              Create invoice
-            </Link>
-          ) : null}
+          <div className="admin-record-main">
+            <div>
+              <h2>{row.title}</h2>
+              <div className="admin-record-meta">
+                {row.meta.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </div>
+            <div className="admin-record-actions">
+              {row.amount ? <strong>{row.amount}</strong> : null}
+              {showInvoiceLink && row.id ? (
+                <Link className="btn ghost" href={`/admin/finances?business=${row.id}`}>
+                  Create invoice
+                </Link>
+              ) : null}
+            </div>
+          </div>
           {row.fields ? (
             <dl className="admin-details">
               {row.fields.map((field) => (
@@ -367,7 +418,7 @@ function RecordGrid({
               section={actionSection}
             />
             {row.id ? (
-              <form action={deleteAdminRecord}>
+              <form action={deleteAdminRecord} className="admin-delete-form">
                 <input name="section" type="hidden" value={actionSection} />
                 <input name="id" type="hidden" value={row.id} />
                 <button className="btn ghost danger" type="submit">
@@ -378,7 +429,7 @@ function RecordGrid({
           </details>
         </article>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -388,16 +439,26 @@ function MoneyRows({ rows }: { rows: Record<string, unknown>[] }) {
   }
 
   return (
-    <div className="admin-grid">
+    <div className="admin-records">
       {rows.map((row, index) => (
         <article key={String(row.id ?? index)}>
-          <h2>{String(row.stripe_invoice_id ?? "Local invoice")}</h2>
-          <p>{String(row.status ?? "unknown")}</p>
-          <p>{String(row.due_date ?? "No due date")}</p>
-          <strong>{formatAdminCurrency(typeof row.total_cents === "number" ? row.total_cents : 0)}</strong>
-          {typeof row.hosted_invoice_url === "string" && row.hosted_invoice_url ? (
-            <Link href={row.hosted_invoice_url}>Open hosted invoice</Link>
-          ) : null}
+          <div className="admin-record-main">
+            <div>
+              <h2>{String(row.stripe_invoice_id ?? "Local invoice")}</h2>
+              <div className="admin-record-meta">
+                <span>{String(row.status ?? "unknown")}</span>
+                <span>{String(row.due_date ?? "No due date")}</span>
+              </div>
+            </div>
+            <div className="admin-record-actions">
+              <strong>{formatAdminCurrency(typeof row.total_cents === "number" ? row.total_cents : 0)}</strong>
+              {typeof row.hosted_invoice_url === "string" && row.hosted_invoice_url ? (
+                <Link className="btn ghost" href={row.hosted_invoice_url}>
+                  Open invoice
+                </Link>
+              ) : null}
+            </div>
+          </div>
         </article>
       ))}
     </div>
@@ -420,7 +481,7 @@ function AdminRecordForm({
   section: AdminSection;
 }) {
   return (
-    <form action={action} className="admin-record-form" encType="multipart/form-data">
+    <form action={action} className="admin-record-form">
       <input name="section" type="hidden" value={section} />
       {id ? <input name="id" type="hidden" value={id} /> : null}
       <div className="form-grid">

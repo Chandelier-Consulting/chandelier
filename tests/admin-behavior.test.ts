@@ -14,7 +14,12 @@ import {
   buildDashboardSummary,
   buildMutationPayload,
   buildSectionRows,
+  loadDemoAdminDashboard,
+  loadDemoAdminOptions,
+  loadDemoAdminRecords,
+  loadDemoFinanceData,
   reportDefinitions,
+  shouldUseLocalAdminDemo,
   toCsv,
 } from "@/lib/admin-data";
 
@@ -183,6 +188,37 @@ function expectsAdminSessionCookieContract() {
   }
 }
 
+async function expectsLocalAdminDemoContract() {
+  if (!shouldUseLocalAdminDemo(["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SECRET_KEY"], "development")) {
+    throw new Error("local admin demo should be available in development when Supabase service config is missing");
+  }
+
+  if (shouldUseLocalAdminDemo(["SUPABASE_SECRET_KEY"], "production")) {
+    throw new Error("local admin demo should not bypass missing Supabase service config in production");
+  }
+
+  if (!shouldUseLocalAdminDemo(["SUPABASE_SECRET_KEY"], "production", "1")) {
+    throw new Error("local admin demo should be available in production builds only when explicitly enabled");
+  }
+
+  const dashboard = loadDemoAdminDashboard();
+  const finance = loadDemoFinanceData();
+  const options = loadDemoAdminOptions();
+  const payouts = await loadDemoAdminRecords("payouts");
+
+  if (dashboard.metrics.length === 0 || dashboard.pipeline.length === 0) {
+    throw new Error("local admin demo should provide dashboard metrics and pipeline data");
+  }
+
+  if (finance.businesses.length === 0 || finance.invoices.length === 0 || finance.summary.openInvoiceCents <= 0) {
+    throw new Error("local admin demo should provide finance workspace data");
+  }
+
+  if (options.businesses.length === 0 || payouts.length === 0) {
+    throw new Error("local admin demo should provide form options and joined payout records");
+  }
+}
+
 void expectsAdminAccessContract;
 void expectsSupabaseDashboardContract;
 void expectsSectionRowsContract;
@@ -191,3 +227,4 @@ void expectsAdminFormDefinitions;
 void expectsMutationPayloadContract;
 expectsAdminUrlAndApiAuthContracts();
 expectsAdminSessionCookieContract();
+void expectsLocalAdminDemoContract;
