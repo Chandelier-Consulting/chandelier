@@ -8,18 +8,10 @@ export const businessUnits = [
 ];
 
 export const adminSections: Array<{ slug: AdminSection; label: string; description: string }> = [
-  { slug: "dashboard", label: "Dashboard", description: "Revenue, cash, invoices, and project health." },
-  { slug: "business-units", label: "Business Units", description: "Chandelier Consulting, AI Consulting, SaaS Products, and Internal Tools." },
-  { slug: "leads", label: "Leads", description: "Kanban-ready lead intake and conversion tracking." },
-  { slug: "clients", label: "Clients", description: "Client profiles, notes, and revenue history." },
-  { slug: "proposals", label: "Proposals", description: "Scopes, deliverables, pricing, files, and statuses." },
-  { slug: "projects", label: "Projects", description: "Delivery checklists and profitability summaries." },
-  { slug: "invoices", label: "Invoices", description: "Stripe invoice status, hosted URLs, deposits, retainers, and line items." },
-  { slug: "expenses", label: "Expenses", description: "Categorized expenses, receipts, deductible flags, and project linkage." },
-  { slug: "contractors", label: "Contractors", description: "Profiles, tax form status, notes, and payout history." },
-  { slug: "payouts", label: "Payouts", description: "Tracked contractor payouts without ACH movement." },
-  { slug: "reports", label: "Reports", description: "CPA-ready CSV exports and profitability reports." },
-  { slug: "settings", label: "Settings", description: "Admin allowlist, storage buckets, and environment health." },
+  { slug: "dashboard", label: "Dashboard", description: "Stats, pipeline, invoices, payouts, and reimbursements." },
+  { slug: "crm", label: "CRM", description: "Businesses from first lead through completed and paid work." },
+  { slug: "finances", label: "Finances", description: "Invoice creation, open money, payouts, and reimbursements." },
+  { slug: "settings", label: "Settings", description: "Admin access, Supabase, and Stripe health." },
 ];
 
 export const pipeline = [
@@ -47,9 +39,7 @@ export const reports = [
   "expenses.csv",
   "contractor_payouts.csv",
   "contractors.csv",
-  "clients.csv",
-  "projects.csv",
-  "business_units.csv",
+  "businesses.csv",
   "cash_ledger.csv",
   "summary.csv",
 ];

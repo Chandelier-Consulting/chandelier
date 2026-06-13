@@ -23,17 +23,18 @@ export async function POST(request: Request) {
 
   const lead = parsed.data;
   const { data, error } = await client
-    .from("leads")
+    .from("businesses")
     .insert({
-      business_name: lead.business_name,
+      name: lead.business_name,
       contact_name: lead.contact_name,
       email: lead.email,
-      phone: lead.phone || null,
-      website: lead.website || null,
-      budget: lead.budget || null,
+      phone: lead.phone || `lead-${crypto.randomUUID()}`,
+      website_found: Boolean(lead.website),
+      website_url: lead.website || null,
+      category: lead.budget ? `Budget: ${lead.budget}` : null,
       requested_services: lead.requested_services,
-      project_description: lead.project_description,
-      status: "new",
+      project_summary: lead.project_description,
+      lead_status: "lead",
     })
     .select("id")
     .single();

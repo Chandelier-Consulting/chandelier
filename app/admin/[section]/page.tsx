@@ -1,25 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  convertLeadToClient,
   createAdminRecord,
   deleteAdminRecord,
   updateAdminRecord,
-  updateLeadStatus,
 } from "@/app/admin/actions";
 import { InvoiceWorkbench } from "@/components/invoice-workbench";
 import {
   adminFormDefinitions,
   adminSections,
+  buildSectionRows,
+  crmStatuses,
+  formatAdminCurrency,
   loadAdminDashboard,
   loadAdminOptions,
   loadAdminRecords,
-  loadAdminRows,
-  buildSectionRows,
+  loadFinanceData,
   reportDefinitions,
-  type AdminRow,
   type AdminField,
   type AdminFormDefinition,
+  type AdminRow,
 } from "@/lib/admin-data";
 import { getServiceSupabase } from "@/lib/supabase";
 import type { AdminSection } from "@/lib/types";
@@ -37,7 +37,7 @@ export default async function AdminSectionPage({
   searchParams,
 }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ saved?: string; deleted?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; deleted?: string; error?: string; business?: string }>;
 }) {
   const { section } = await params;
   const notice = await searchParams;
@@ -52,11 +52,7 @@ export default async function AdminSectionPage({
   if (!client) {
     return (
       <section className="admin-page">
-        <header>
-          <p>Chandelier Consulting OS</p>
-          <h1>{current.label}</h1>
-          <span>Supabase is required for admin data.</span>
-        </header>
+        <AdminHeader current={current} />
         <EmptyState title="Supabase is not configured" detail={`Missing environment: ${missing.join(", ")}`} />
       </section>
     );
@@ -64,18 +60,23 @@ export default async function AdminSectionPage({
 
   return (
     <section className="admin-page">
-      <header>
-        <p>Chandelier Consulting OS</p>
-        <h1>{current.label}</h1>
-        <span>{current.description}</span>
-      </header>
+      <AdminHeader current={current} />
       <AdminNotice notice={notice} />
-      {section === "dashboard" ? (
-        <Dashboard client={client} />
-      ) : (
-        <Module client={client} section={section as AdminSection} />
-      )}
+      {section === "dashboard" ? <Dashboard client={client} /> : null}
+      {section === "crm" ? <Crm client={client} /> : null}
+      {section === "finances" ? <Finances client={client} initialBusinessId={notice.business} /> : null}
+      {section === "settings" ? <Settings /> : null}
     </section>
+  );
+}
+
+function AdminHeader({ current }: { current: { label: string; description: string } }) {
+  return (
+    <header>
+      <p>Chandelier Consulting OS</p>
+      <h1>{current.label}</h1>
+      <span>{current.description}</span>
+    </header>
   );
 }
 
@@ -98,7 +99,7 @@ async function Dashboard({ client }: { client: NonNullable<ReturnType<typeof get
           {dashboard.pipeline.map((item) => (
             <div className="admin-row" key={item.stage}>
               <span>{item.stage}</span>
-              <strong>{item.count}</strong>
+              <strong>{item.count} / {formatAdminCurrency(item.valueCents)}</strong>
             </div>
           ))}
         </article>
@@ -107,7 +108,7 @@ async function Dashboard({ client }: { client: NonNullable<ReturnType<typeof get
           {dashboard.businessUnits.map((unit) => (
             <div className="admin-row" key={unit.slug}>
               <span>{unit.name}</span>
-              <strong>{formatCurrency(unit.revenueCents)}</strong>
+              <strong>{formatAdminCurrency(unit.revenueCents)}</strong>
             </div>
           ))}
         </article>
@@ -116,18 +117,115 @@ async function Dashboard({ client }: { client: NonNullable<ReturnType<typeof get
   );
 }
 
-async function Module({
+async function Crm({ client }: { client: NonNullable<ReturnType<typeof getServiceSupabase>["client"]> }) {
+  const [records, options] = await Promise.all([
+    loadAdminRecords(client, "crm"),
+    loadAdminOptions(client),
+  ]);
+  const rows = buildSectionRows("crm", records);
+  const definition = adminFormDefinitions.crm!;
+
+  return (
+    <div className="admin-workspace">
+      <CrmPipeline rows={rows} />
+      <section className="admin-editor">
+        <article className="admin-form-card">
+          <h2>Add business</h2>
+          <AdminRecordForm action={createAdminRecord} definition={definition} options={options} section="crm" />
+        </article>
+      </section>
+      <RecordGrid
+        actionSection="crm"
+        definition={definition}
+        emptyDetail="Add the first company or lead with the form above."
+        emptyTitle="No businesses yet"
+        options={options}
+        records={records}
+        rows={rows}
+        showInvoiceLink
+      />
+    </div>
+  );
+}
+
+function CrmPipeline({ rows }: { rows: AdminRow[] }) {
+  return (
+    <div className="admin-kanban compact">
+      {crmStatuses.map((status) => {
+        const statusRows = rows.filter((row) => row.meta[0]?.toLowerCase() === status);
+        return (
+          <article key={status}>
+            <h2>{status}</h2>
+            <strong>{statusRows.length}</strong>
+            {statusRows.slice(0, 4).map((row) => (
+              <p key={`${status}-${row.id}`}>{row.title}</p>
+            ))}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+async function Finances({
   client,
-  section,
+  initialBusinessId,
 }: {
   client: NonNullable<ReturnType<typeof getServiceSupabase>["client"]>;
-  section: AdminSection;
+  initialBusinessId?: string;
 }) {
-  if (section === "reports") {
-    return (
-      <div className="admin-grid">
+  const [finance, options, expenseRecords, contractorRecords, payoutRecords] = await Promise.all([
+    loadFinanceData(client),
+    loadAdminOptions(client),
+    loadAdminRecords(client, "expenses"),
+    loadAdminRecords(client, "contractors"),
+    loadAdminRecords(client, "payouts"),
+  ]);
+  const businesses = finance.businesses.map((business) => ({
+    id: String(business.id),
+    name: typeof business.name === "string" ? business.name : "Unnamed business",
+    email: typeof business.email === "string" ? business.email : "",
+    stripe_customer_id: typeof business.stripe_customer_id === "string" ? business.stripe_customer_id : "",
+  }));
+
+  return (
+    <div className="admin-workspace">
+      <div className="admin-metrics finance-metrics">
         <article>
-          <h2>CPA exports</h2>
+          <span>Open invoices</span>
+          <strong>{formatAdminCurrency(finance.summary.openInvoiceCents)}</strong>
+        </article>
+        <article>
+          <span>Contractors owed</span>
+          <strong>{formatAdminCurrency(finance.summary.contractorOwedCents)}</strong>
+        </article>
+        <article>
+          <span>Reimburse me</span>
+          <strong>{formatAdminCurrency(finance.summary.reimbursableCents)}</strong>
+        </article>
+        <article>
+          <span>Payments recorded</span>
+          <strong>{formatAdminCurrency(finance.summary.paidCents)}</strong>
+        </article>
+      </div>
+
+      <InvoiceWorkbench businesses={businesses} initialBusinessId={initialBusinessId} />
+
+      <div className="admin-grid finance-actions">
+        <article className="admin-form-card">
+          <h2>Add expense</h2>
+          <AdminRecordForm action={createAdminRecord} definition={adminFormDefinitions.expenses!} options={options} section="expenses" />
+        </article>
+        <article className="admin-form-card">
+          <h2>Add contractor</h2>
+          <AdminRecordForm action={createAdminRecord} definition={adminFormDefinitions.contractors!} options={options} section="contractors" />
+        </article>
+        <article className="admin-form-card">
+          <h2>Add payout owed</h2>
+          <AdminRecordForm action={createAdminRecord} definition={adminFormDefinitions.payouts!} options={options} section="payouts" />
+        </article>
+        <article>
+          <h2>Exports</h2>
           {reportDefinitions.map((report) => (
             <div className="admin-row" key={report.fileName}>
               <span>{report.fileName}</span>
@@ -135,58 +233,63 @@ async function Module({
             </div>
           ))}
         </article>
-        <article>
-          <h2>Disclaimer</h2>
-          <p>This is bookkeeping support, not tax advice. Consult a CPA.</p>
-        </article>
       </div>
-    );
-  }
 
-  if (section === "invoices") {
-    const rows = await loadAdminRows(client, section);
-    return (
-      <>
-        <Rows title="Supabase invoices" rows={rows} />
-        <InvoiceWorkbench />
-      </>
-    );
-  }
+      <section>
+        <h2 className="admin-section-title">Open invoices</h2>
+        <MoneyRows rows={finance.invoices.filter((invoice) => !["paid", "void", "voided", "uncollectible"].includes(String(invoice.status ?? "")))} />
+      </section>
 
-  const definition = adminFormDefinitions[section];
-  if (definition) {
-    const [records, options] = await Promise.all([
-      loadAdminRecords(client, section),
-      loadAdminOptions(client),
-    ]);
-    const rows = buildDisplayRows(section, records);
-    return (
-      <AdminCrudModule
-        definition={definition}
+      <RecordGrid
+        actionSection="payouts"
+        definition={adminFormDefinitions.payouts!}
+        emptyDetail="No contractor payouts are currently tracked."
+        emptyTitle="No payouts"
         options={options}
-        records={records}
-        rows={rows}
-        section={section}
+        records={payoutRecords}
+        rows={buildSectionRows("payouts", payoutRecords)}
       />
-    );
-  }
 
-  if (section === "settings") {
-    return (
-      <div className="admin-grid">
-        <article>
-          <h2>Supabase</h2>
-          <p>Admin data is loaded from Supabase with server-only service access.</p>
-        </article>
-        <article>
-          <h2>Security model</h2>
-          <p>Admin routes require Supabase Auth plus the ADMIN_EMAILS allowlist when configured.</p>
-        </article>
-      </div>
-    );
-  }
+      <RecordGrid
+        actionSection="expenses"
+        definition={adminFormDefinitions.expenses!}
+        emptyDetail="No expenses are currently tracked."
+        emptyTitle="No expenses"
+        options={options}
+        records={expenseRecords}
+        rows={buildSectionRows("expenses", expenseRecords)}
+      />
 
-  return <Rows title={adminSections.find((item) => item.slug === section)?.label ?? section} rows={await loadAdminRows(client, section)} />;
+      <RecordGrid
+        actionSection="contractors"
+        definition={adminFormDefinitions.contractors!}
+        emptyDetail="No contractors are currently tracked."
+        emptyTitle="No contractors"
+        options={options}
+        records={contractorRecords}
+        rows={buildSectionRows("contractors", contractorRecords)}
+      />
+    </div>
+  );
+}
+
+function Settings() {
+  return (
+    <div className="admin-grid">
+      <article>
+        <h2>Supabase</h2>
+        <p>Admin data is loaded from Supabase with server-only service access.</p>
+      </article>
+      <article>
+        <h2>Stripe</h2>
+        <p>Admin invoice actions run through internal API routes. Webhooks validate invoice and payment status back into Supabase.</p>
+      </article>
+      <article>
+        <h2>Security model</h2>
+        <p>Admin routes require Supabase Auth plus the ADMIN_EMAILS allowlist when configured.</p>
+      </article>
+    </div>
+  );
 }
 
 function AdminNotice({
@@ -206,118 +309,97 @@ function AdminNotice({
   return null;
 }
 
-function AdminCrudModule({
+function RecordGrid({
+  actionSection,
   definition,
+  emptyDetail,
+  emptyTitle,
   options,
   records,
   rows,
-  section,
+  showInvoiceLink,
 }: {
+  actionSection: AdminSection;
   definition: AdminFormDefinition;
+  emptyDetail: string;
+  emptyTitle: string;
   options: Awaited<ReturnType<typeof loadAdminOptions>>;
   records: Record<string, unknown>[];
   rows: AdminRow[];
-  section: AdminSection;
+  showInvoiceLink?: boolean;
 }) {
-  return (
-    <div className="admin-workspace">
-      {section === "leads" ? <LeadKanban rows={rows} /> : null}
-      <section className="admin-editor">
-        <article className="admin-form-card">
-          <h2>Add {definition.title.toLowerCase()}</h2>
-          <AdminRecordForm
-            action={createAdminRecord}
-            definition={definition}
-            options={options}
-            section={section}
-          />
-        </article>
-      </section>
-      <div className="admin-grid admin-records">
-        {rows.length === 0 ? (
-          <article>
-            <h2>No {definition.title.toLowerCase()} records</h2>
-            <p>Add the first record with the form above.</p>
-          </article>
-        ) : rows.map((row, index) => (
-          <article key={row.id ?? `${row.title}-${index}`}>
-            <h2>{row.title}</h2>
-            {row.meta.map((item) => (
-              <p key={item}>{item}</p>
-            ))}
-            {row.amount ? <strong>{row.amount}</strong> : null}
-            {row.fields ? (
-              <dl className="admin-details">
-                {row.fields.map((field) => (
-                  <div key={`${row.id}-${field.label}`}>
-                    <dt>{field.label}</dt>
-                    <dd>{field.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : null}
-            {section === "leads" && row.id ? <LeadActions id={row.id} /> : null}
-            <details className="admin-edit">
-              <summary>Edit</summary>
-              <AdminRecordForm
-                action={updateAdminRecord}
-                definition={definition}
-                id={row.id}
-                options={options}
-                record={records[index]}
-                section={section}
-              />
-              {row.id ? (
-                <form action={deleteAdminRecord}>
-                  <input name="section" type="hidden" value={section} />
-                  <input name="id" type="hidden" value={row.id} />
-                  <button className="btn ghost danger" type="submit">
-                    Delete
-                  </button>
-                </form>
-              ) : null}
-            </details>
-          </article>
-        ))}
-      </div>
-    </div>
-  );
-}
+  if (rows.length === 0) {
+    return <EmptyState title={emptyTitle} detail={emptyDetail} />;
+  }
 
-function LeadKanban({ rows }: { rows: AdminRow[] }) {
-  const statuses = ["new", "proposal", "won", "invoiced", "lost"];
   return (
-    <div className="admin-kanban">
-      {statuses.map((status) => (
-        <article key={status}>
-          <h2>{status}</h2>
-          {rows
-            .filter((row) => row.meta.some((item) => item.toLowerCase() === status))
-            .map((row) => (
-              <p key={`${status}-${row.id}`}>{row.title}</p>
-            ))}
+    <div className="admin-grid admin-records">
+      {rows.map((row, index) => (
+        <article key={row.id ?? `${row.title}-${index}`}>
+          <h2>{row.title}</h2>
+          {row.meta.map((item) => (
+            <p key={item}>{item}</p>
+          ))}
+          {row.amount ? <strong>{row.amount}</strong> : null}
+          {showInvoiceLink && row.id ? (
+            <Link className="btn ghost" href={`/admin/finances?business=${row.id}`}>
+              Create invoice
+            </Link>
+          ) : null}
+          {row.fields ? (
+            <dl className="admin-details">
+              {row.fields.map((field) => (
+                <div key={`${row.id}-${field.label}`}>
+                  <dt>{field.label}</dt>
+                  <dd>{field.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          <details className="admin-edit">
+            <summary>Edit</summary>
+            <AdminRecordForm
+              action={updateAdminRecord}
+              definition={definition}
+              id={row.id}
+              options={options}
+              record={records[index]}
+              section={actionSection}
+            />
+            {row.id ? (
+              <form action={deleteAdminRecord}>
+                <input name="section" type="hidden" value={actionSection} />
+                <input name="id" type="hidden" value={row.id} />
+                <button className="btn ghost danger" type="submit">
+                  Delete
+                </button>
+              </form>
+            ) : null}
+          </details>
         </article>
       ))}
     </div>
   );
 }
 
-function LeadActions({ id }: { id: string }) {
+function MoneyRows({ rows }: { rows: Record<string, unknown>[] }) {
+  if (rows.length === 0) {
+    return <EmptyState title="No open invoices" detail="Supabase has no unpaid invoices right now." />;
+  }
+
   return (
-    <div className="admin-inline-actions">
-      <form action={updateLeadStatus}>
-        <input name="id" type="hidden" value={id} />
-        <select name="status" defaultValue="proposal">
-          {["new", "proposal", "won", "invoiced", "lost"].map((status) => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </select>
-        <button className="btn ghost" type="submit">Update status</button>
-      </form>
-      <form action={convertLeadToClient}>
-        <input name="id" type="hidden" value={id} />
-        <button className="btn" type="submit">Convert to client</button>
-      </form>
+    <div className="admin-grid">
+      {rows.map((row, index) => (
+        <article key={String(row.id ?? index)}>
+          <h2>{String(row.stripe_invoice_id ?? "Local invoice")}</h2>
+          <p>{String(row.status ?? "unknown")}</p>
+          <p>{String(row.due_date ?? "No due date")}</p>
+          <strong>{formatAdminCurrency(typeof row.total_cents === "number" ? row.total_cents : 0)}</strong>
+          {typeof row.hosted_invoice_url === "string" && row.hosted_invoice_url ? (
+            <Link href={row.hosted_invoice_url}>Open hosted invoice</Link>
+          ) : null}
+        </article>
+      ))}
     </div>
   );
 }
@@ -438,43 +520,9 @@ function inputValue(field: AdminField, value: unknown) {
     return typeof value === "number" ? String(value / 100) : String(value);
   }
   if (field.type === "multitext") {
-    if (Array.isArray(value)) {
-      return value
-        .map((item) => {
-          if (typeof item === "string") return item;
-          if (item && typeof item === "object" && "title" in item) return String(item.title);
-          return String(item);
-        })
-        .join("\n");
-    }
-    return String(value);
+    return Array.isArray(value) ? value.map(String).join("\n") : String(value);
   }
   return String(value);
-}
-
-function buildDisplayRows(section: AdminSection, records: Record<string, unknown>[]) {
-  return buildSectionRows(section, records);
-}
-
-function Rows({ title, rows }: { title: string; rows: AdminRow[] }) {
-  if (rows.length === 0) {
-    return <EmptyState title={`No ${title.toLowerCase()} rows`} detail="Supabase returned zero records for this module." />;
-  }
-
-  return (
-    <div className="admin-grid">
-      {rows.map((row, index) => (
-        <article key={`${row.title}-${index}`}>
-          <h2>{row.title}</h2>
-          {row.meta.map((item) => (
-            <p key={item}>{item}</p>
-          ))}
-          {row.amount ? <strong>{row.amount}</strong> : null}
-          {row.href ? <Link href={row.href}>Open in Stripe</Link> : null}
-        </article>
-      ))}
-    </div>
-  );
 }
 
 function EmptyState({ title, detail }: { title: string; detail: string }) {
@@ -486,12 +534,4 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
       </article>
     </div>
   );
-}
-
-function formatCurrency(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
 }

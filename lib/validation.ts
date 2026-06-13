@@ -22,7 +22,7 @@ export const recurringLineItemSchema = invoiceLineItemSchema.extend({
 });
 
 export const createInvoiceSchema = z.object({
-  client_id: z.string().uuid().optional(),
+  business_id: z.string().uuid().optional(),
   customer_email: z.string().email(),
   customer_name: z.string().min(2).max(160),
   stripe_customer_id: z.string().min(1).optional(),
@@ -35,7 +35,7 @@ export const createInvoiceSchema = z.object({
 });
 
 export const createCombinedBillingSchema = z.object({
-  client_id: z.string().uuid().optional(),
+  business_id: z.string().uuid().optional(),
   customer_email: z.string().email(),
   customer_name: z.string().min(2).max(160),
   stripe_customer_id: z.string().min(1).optional(),
@@ -57,7 +57,7 @@ export const createCombinedBillingSchema = z.object({
 );
 
 export const createSubscriptionSchema = z.object({
-  client_id: z.string().uuid().optional(),
+  business_id: z.string().uuid().optional(),
   customer_email: z.string().email(),
   customer_name: z.string().min(2).max(160),
   stripe_customer_id: z.string().min(1).optional(),

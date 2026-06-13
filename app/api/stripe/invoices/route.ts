@@ -75,6 +75,7 @@ export async function POST(request: Request) {
     due_date: input.due_date ? Math.floor(new Date(input.due_date).getTime() / 1000) : undefined,
     description: input.memo,
     metadata: {
+      business_id: input.business_id ?? "",
       discount_cents: String(input.discount_cents),
       deposit_cents: String(input.deposit_cents),
       retainer_cents: String(input.retainer_cents),
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
   const { data, error } = await client
     .from("invoices")
     .upsert({
-      client_id: input.client_id ?? null,
+      business_id: input.business_id ?? null,
       stripe_invoice_id: invoice.id,
       hosted_invoice_url: invoice.hosted_invoice_url ?? null,
       status: invoice.status ?? "draft",
@@ -126,11 +127,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: lineInsert.error.message }, { status: 500 });
   }
 
-  if (input.client_id) {
+  if (input.business_id) {
     await client
-      .from("clients")
+      .from("businesses")
       .update({ stripe_customer_id: customer.id })
-      .eq("id", input.client_id);
+      .eq("id", input.business_id);
   }
 
   return NextResponse.json({

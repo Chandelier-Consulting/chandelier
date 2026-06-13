@@ -23,6 +23,13 @@ type InvoiceResult = {
   monthly_total_cents?: number;
 };
 
+type BusinessOption = {
+  id: string;
+  name: string;
+  email?: string;
+  stripe_customer_id?: string;
+};
+
 const defaultOneTimeItems: LineItem[] = [
   { description: "Website, automation, or dashboard implementation", quantity: 1, unit_amount_cents: 750000 },
 ];
@@ -44,9 +51,20 @@ function formatCurrency(cents: number) {
   }).format(cents / 100);
 }
 
-export function InvoiceWorkbench() {
+export function InvoiceWorkbench({
+  businesses = [],
+  initialBusinessId,
+}: {
+  businesses?: BusinessOption[];
+  initialBusinessId?: string;
+}) {
   const [oneTimeItems, setOneTimeItems] = useState(defaultOneTimeItems);
   const [recurringItems, setRecurringItems] = useState(defaultRecurringItems);
+  const [selectedBusinessId, setSelectedBusinessId] = useState(initialBusinessId ?? "");
+  const selectedBusiness = businesses.find((business) => business.id === selectedBusinessId);
+  const [customerName, setCustomerName] = useState(selectedBusiness?.name ?? "Rivera Bakery");
+  const [customerEmail, setCustomerEmail] = useState(selectedBusiness?.email ?? "billing@example.com");
+  const [stripeCustomerId, setStripeCustomerId] = useState(selectedBusiness?.stripe_customer_id ?? "");
   const [result, setResult] = useState<InvoiceResult | null>(null);
   const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
   const [message, setMessage] = useState(
@@ -75,6 +93,15 @@ export function InvoiceWorkbench() {
     );
   }
 
+  function selectBusiness(id: string) {
+    setSelectedBusinessId(id);
+    const business = businesses.find((item) => item.id === id);
+    if (!business) return;
+    setCustomerName(business.name);
+    if (business.email) setCustomerEmail(business.email);
+    setStripeCustomerId(business.stripe_customer_id ?? "");
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("working");
@@ -82,6 +109,7 @@ export function InvoiceWorkbench() {
 
     const formData = new FormData(event.currentTarget);
     const payload = {
+      business_id: String(formData.get("business_id") ?? "") || undefined,
       customer_name: String(formData.get("customer_name") ?? ""),
       customer_email: String(formData.get("customer_email") ?? ""),
       stripe_customer_id: String(formData.get("stripe_customer_id") ?? "") || undefined,
@@ -148,17 +176,30 @@ export function InvoiceWorkbench() {
         <div className="invoice-panel">
           <h2>Customer</h2>
           <div className="form-grid">
+            {businesses.length > 0 ? (
+              <label className="field full">
+                Business
+                <select name="business_id" value={selectedBusinessId} onChange={(event) => selectBusiness(event.target.value)}>
+                  <option value="">Not linked</option>
+                  {businesses.map((business) => (
+                    <option key={business.id} value={business.id}>
+                      {business.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="field">
               Customer name
-              <input name="customer_name" defaultValue="Rivera Bakery" required />
+              <input name="customer_name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} required />
             </label>
             <label className="field">
               Customer email
-              <input name="customer_email" type="email" defaultValue="billing@example.com" required />
+              <input name="customer_email" type="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} required />
             </label>
             <label className="field">
               Existing Stripe customer ID
-              <input name="stripe_customer_id" placeholder="cus_..." />
+              <input name="stripe_customer_id" value={stripeCustomerId} onChange={(event) => setStripeCustomerId(event.target.value)} placeholder="cus_..." />
             </label>
             <label className="field">
               One-time invoice due date
