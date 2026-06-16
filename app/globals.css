@@ -1201,7 +1201,9 @@ h4 {
 }
 
 .admin-page {
+  width: 100%;
   max-width: 1480px;
+  min-width: 0;
 }
 
 .admin-header {
@@ -1239,12 +1241,12 @@ h4 {
 .admin-metrics,
 .admin-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
   gap: 12px;
 }
 
 .admin-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   margin-top: 12px;
 }
 
@@ -1255,10 +1257,12 @@ h4 {
 .invoice-panel,
 .invoice-result,
 .invoice-summary {
+  min-width: 0;
   border: 1px solid oklch(0.34 0.018 230 / 0.78);
   border-radius: 8px;
   background: linear-gradient(180deg, oklch(0.205 0.013 230 / 0.78), oklch(0.15 0.011 245 / 0.82));
   box-shadow: 0 18px 42px -34px oklch(0 0 0 / 0.72);
+  overflow-wrap: anywhere;
 }
 
 .admin-grid article,
@@ -1304,10 +1308,16 @@ h4 {
 
 .admin-row {
   display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
   gap: 18px;
   border-top: 1px solid oklch(0.34 0.018 230 / 0.62);
   padding: 12px 0;
+}
+
+.admin-row span {
+  min-width: 0;
 }
 
 .admin-row a,
@@ -1336,6 +1346,66 @@ h4 {
   gap: 14px;
 }
 
+.admin-command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  align-items: start;
+  gap: 12px;
+}
+
+.admin-command-panel {
+  min-width: 0;
+  align-self: start;
+  border: 1px solid oklch(0.34 0.018 230 / 0.78);
+  border-radius: 8px;
+  background: linear-gradient(180deg, oklch(0.19 0.012 230 / 0.72), oklch(0.135 0.011 245 / 0.82));
+  overflow: hidden;
+}
+
+.admin-command-panel > summary {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--white);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  list-style: none;
+  padding: 16px 18px;
+}
+
+.admin-command-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-command-panel > summary::after {
+  content: "+";
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.admin-command-panel[open] > summary {
+  border-bottom: 1px solid oklch(0.34 0.018 230 / 0.62);
+}
+
+.admin-command-panel[open] > summary::after {
+  content: "-";
+}
+
+.admin-command-panel > .admin-form-card,
+.admin-command-panel > .invoice-workbench {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 18px;
+}
+
 .admin-section {
   display: grid;
   gap: 12px;
@@ -1346,6 +1416,157 @@ h4 {
   font-family: var(--sans);
   font-size: 17px;
   font-weight: 800;
+}
+
+.admin-data-table {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid oklch(0.34 0.018 230 / 0.72);
+  border-radius: 8px;
+  background: oklch(0.145 0.011 245 / 0.82);
+}
+
+.admin-table-head,
+.admin-table-row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+}
+
+.crm-table .admin-table-head,
+.crm-table .admin-table-row {
+  grid-template-columns: minmax(180px, 1.4fr) minmax(92px, 0.65fr) minmax(160px, 1fr) minmax(190px, 1.2fr) minmax(90px, 0.6fr) minmax(160px, 0.9fr);
+}
+
+.finance-table .admin-table-head,
+.finance-table .admin-table-row,
+.invoice-table .admin-table-head,
+.invoice-table .admin-table-row {
+  grid-template-columns: minmax(190px, 1.4fr) minmax(92px, 0.65fr) minmax(180px, 1.1fr) minmax(90px, 0.6fr) minmax(118px, 0.7fr);
+}
+
+.admin-table-head {
+  border-bottom: 1px solid oklch(0.34 0.018 230 / 0.62);
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  padding: 12px 16px;
+  text-transform: uppercase;
+}
+
+.admin-table-row {
+  border-bottom: 1px solid oklch(0.34 0.018 230 / 0.48);
+  padding: 14px 16px;
+}
+
+.admin-table-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-table-row > div {
+  min-width: 0;
+}
+
+.admin-table-row strong {
+  display: block;
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.admin-table-row .primary strong,
+.admin-table-row [data-label="Amount"] strong,
+.admin-table-row [data-label="Value"] strong,
+.admin-table-row [data-label="Total"] strong {
+  color: var(--gold);
+}
+
+.admin-table-row span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.admin-pill {
+  display: inline-flex !important;
+  width: fit-content;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid oklch(0.84 0.13 88 / 0.28);
+  border-radius: 999px;
+  background: oklch(0.84 0.13 88 / 0.08);
+  color: var(--gold) !important;
+  font-size: 11.5px !important;
+  font-weight: 750;
+  line-height: 1;
+  margin-top: 0 !important;
+  padding: 6px 9px;
+  text-transform: capitalize;
+}
+
+.admin-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.crm-table .admin-table-actions {
+  grid-column: 6;
+  grid-row: 1;
+}
+
+.finance-table .admin-table-actions,
+.invoice-table .admin-table-actions {
+  grid-column: 5;
+  grid-row: 1;
+}
+
+.admin-table-actions .btn,
+.admin-table-actions summary {
+  min-height: 34px;
+  padding: 8px 11px;
+  font-size: 12px;
+}
+
+.admin-table-edit {
+  position: relative;
+  border-top: 0;
+  grid-row: 1;
+  margin-top: 0;
+  padding-top: 0;
+  justify-self: end;
+}
+
+.crm-table .admin-table-edit {
+  grid-column: 6;
+  grid-row: 2;
+}
+
+.finance-table .admin-table-edit {
+  grid-column: 5;
+  grid-row: 1;
+}
+
+.admin-table-edit[open] {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  justify-self: stretch;
+}
+
+.admin-table-edit .admin-record-form {
+  margin-top: 12px;
+  border: 1px solid oklch(0.34 0.018 230 / 0.62);
+  border-radius: 8px;
+  background: oklch(0.105 0.01 250 / 0.54);
+  padding: 14px;
 }
 
 .admin-form-card,
@@ -1408,9 +1629,13 @@ h4 {
 
 .admin-record-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(max-content, auto);
   align-items: start;
   gap: 18px;
+}
+
+.admin-record-main > div {
+  min-width: 0;
 }
 
 .admin-record-main h2 {
@@ -1448,6 +1673,7 @@ h4 {
 .admin-record-actions {
   align-items: center;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .admin-record-actions strong {
@@ -1460,14 +1686,16 @@ h4 {
 .admin-edit .btn,
 .invoice-head .btn,
 .invoice-actions .btn {
+  max-width: 100%;
   min-height: 38px;
   padding: 10px 14px;
   font-size: 13px;
+  white-space: normal;
 }
 
 .admin-details {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
   gap: 10px 14px;
   margin: 0;
   border-top: 1px solid oklch(0.34 0.018 230 / 0.62);
@@ -1538,15 +1766,18 @@ h4 {
 
 .admin-record-form .form-grid,
 .invoice-panel .form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 12px;
 }
 
 .admin-record-form .field,
 .invoice-form .field {
+  min-width: 0;
   gap: 6px;
   color: var(--faint);
   font-size: 10.5px;
   letter-spacing: 0.13em;
+  overflow-wrap: anywhere;
 }
 
 .admin-record-form .field input,
@@ -1555,6 +1786,8 @@ h4 {
 .invoice-form .field input,
 .invoice-form .field textarea,
 .invoice-form .field select {
+  width: 100%;
+  min-width: 0;
   min-height: 42px;
   background: oklch(0.105 0.01 250 / 0.9);
   font-size: 14px;
@@ -1613,6 +1846,7 @@ h4 {
 .invoice-summary,
 .invoice-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -1660,7 +1894,7 @@ h4 {
 
 .line-editor {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 90px 130px auto;
+  grid-template-columns: minmax(0, 1fr) minmax(72px, 90px) minmax(112px, 130px) max-content;
   gap: 12px;
   align-items: end;
   border-top: 1px solid var(--line);
@@ -1669,6 +1903,7 @@ h4 {
 }
 
 .remove-line {
+  max-width: 100%;
   min-height: 50px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1681,7 +1916,7 @@ h4 {
 .invoice-summary strong {
   display: block;
   font-family: var(--display);
-  font-size: 42px;
+  font-size: clamp(30px, 4vw, 42px);
   line-height: 1;
 }
 
@@ -1881,6 +2116,16 @@ h4 {
     flex: 1;
     height: 1px;
     background: linear-gradient(90deg, var(--line), transparent);
+  }
+}
+
+@media (max-width: 1220px) {
+  .invoice-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-result {
+    position: static;
   }
 }
 
@@ -2119,6 +2364,66 @@ h4 {
 
   .admin-details {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-table-head {
+    display: none;
+  }
+
+  .crm-table .admin-table-row,
+  .finance-table .admin-table-row,
+  .invoice-table .admin-table-row {
+    display: block !important;
+    grid-template-columns: none !important;
+  }
+
+  .admin-table-row > div {
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .admin-table-row > div:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .admin-table-row > div:empty {
+    display: none;
+  }
+
+  .admin-table-row > div::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    line-height: 1.35;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+
+  .admin-table-row .primary strong,
+  .admin-table-row [data-label="Amount"] strong,
+  .admin-table-row [data-label="Value"] strong,
+  .admin-table-row [data-label="Total"] strong {
+    color: var(--white);
+  }
+
+  .admin-table-actions {
+    justify-content: start;
+  }
+
+  .crm-table .admin-table-edit,
+  .finance-table .admin-table-edit,
+  .admin-table-edit,
+  .admin-table-edit[open] {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
+  }
+
+  .admin-table-edit summary {
+    width: 100%;
   }
 }
 

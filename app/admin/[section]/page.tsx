@@ -151,21 +151,20 @@ async function Crm({ client, demo }: { client?: AdminClient; demo?: boolean }) {
   return (
     <div className="admin-workspace">
       <CrmPipeline rows={rows} />
-      <section className="admin-editor" aria-labelledby="add-business-title">
+      <details className="admin-command-panel">
+        <summary>Add lead or business</summary>
         <article className="admin-form-card">
-          <h2 id="add-business-title">Add business</h2>
+          <h2>Add business</h2>
           <AdminRecordForm action={createAdminRecord} definition={definition} options={options} section="crm" />
         </article>
-      </section>
-      <RecordGrid
-        actionSection="crm"
+      </details>
+      <CrmRecordTable
         definition={definition}
         emptyDetail="Add the first company or lead with the form above."
         emptyTitle="No businesses yet"
         options={options}
         records={records}
         rows={rows}
-        showInvoiceLink
       />
     </div>
   );
@@ -244,22 +243,36 @@ async function Finances({
         </article>
       </div>
 
-      <InvoiceWorkbench businesses={businesses} initialBusinessId={initialBusinessId} />
+      <details className="admin-command-panel" open={Boolean(initialBusinessId)}>
+        <summary>Create invoice package</summary>
+        <InvoiceWorkbench businesses={businesses} initialBusinessId={initialBusinessId} />
+      </details>
 
-      <div className="admin-grid finance-actions">
-        <article className="admin-form-card">
+      <section className="admin-command-grid" aria-label="Finance commands">
+        <details className="admin-command-panel">
+          <summary>Add expense</summary>
+          <article className="admin-form-card">
           <h2>Add expense</h2>
           <AdminRecordForm action={createAdminRecord} definition={adminFormDefinitions.expenses!} options={options} section="expenses" />
-        </article>
-        <article className="admin-form-card">
+          </article>
+        </details>
+        <details className="admin-command-panel">
+          <summary>Add contractor</summary>
+          <article className="admin-form-card">
           <h2>Add contractor</h2>
           <AdminRecordForm action={createAdminRecord} definition={adminFormDefinitions.contractors!} options={options} section="contractors" />
-        </article>
-        <article className="admin-form-card">
+          </article>
+        </details>
+        <details className="admin-command-panel">
+          <summary>Add payout owed</summary>
+          <article className="admin-form-card">
           <h2>Add payout owed</h2>
           <AdminRecordForm action={createAdminRecord} definition={adminFormDefinitions.payouts!} options={options} section="payouts" />
-        </article>
-        <article>
+          </article>
+        </details>
+        <details className="admin-command-panel">
+          <summary>Exports</summary>
+          <article className="admin-form-card">
           <h2>Exports</h2>
           {reportDefinitions.map((report) => (
             <div className="admin-row" key={report.fileName}>
@@ -267,39 +280,43 @@ async function Finances({
               <Link href={`/api/reports/${report.fileName}`}>Download</Link>
             </div>
           ))}
-        </article>
-      </div>
+          </article>
+        </details>
+      </section>
 
       <section className="admin-section">
         <h2 className="admin-section-title">Open invoices</h2>
         <MoneyRows rows={finance.invoices.filter((invoice) => !["paid", "void", "voided", "uncollectible"].includes(String(invoice.status ?? "")))} />
       </section>
 
-      <RecordGrid
+      <FinanceRecordTable
         actionSection="payouts"
         definition={adminFormDefinitions.payouts!}
         emptyDetail="No contractor payouts are currently tracked."
         emptyTitle="No payouts"
+        label="Contractor payouts"
         options={options}
         records={payoutRecords}
         rows={buildSectionRows("payouts", payoutRecords)}
       />
 
-      <RecordGrid
+      <FinanceRecordTable
         actionSection="expenses"
         definition={adminFormDefinitions.expenses!}
         emptyDetail="No expenses are currently tracked."
         emptyTitle="No expenses"
+        label="Expenses"
         options={options}
         records={expenseRecords}
         rows={buildSectionRows("expenses", expenseRecords)}
       />
 
-      <RecordGrid
+      <FinanceRecordTable
         actionSection="contractors"
         definition={adminFormDefinitions.contractors!}
         emptyDetail="No contractors are currently tracked."
         emptyTitle="No contractors"
+        label="Contractors"
         options={options}
         records={contractorRecords}
         rows={buildSectionRows("contractors", contractorRecords)}
@@ -352,84 +369,174 @@ function LocalDemoNotice({ missing }: { missing: string[] }) {
   );
 }
 
-function RecordGrid({
-  actionSection,
+function CrmRecordTable({
   definition,
   emptyDetail,
   emptyTitle,
   options,
   records,
   rows,
-  showInvoiceLink,
 }: {
-  actionSection: AdminSection;
   definition: AdminFormDefinition;
   emptyDetail: string;
   emptyTitle: string;
   options: Awaited<ReturnType<typeof loadAdminOptions>>;
   records: Record<string, unknown>[];
   rows: AdminRow[];
-  showInvoiceLink?: boolean;
 }) {
   if (rows.length === 0) {
     return <EmptyState title={emptyTitle} detail={emptyDetail} />;
   }
 
   return (
-    <section className="admin-records" aria-label={emptyTitle.replace("No ", "")}>
+    <section className="admin-data-table crm-table" aria-label="CRM businesses and leads">
+      <div className="admin-table-head" aria-hidden="true">
+        <span>Business</span>
+        <span>Status</span>
+        <span>Contact</span>
+        <span>Next action</span>
+        <span>Value</span>
+        <span>Commands</span>
+      </div>
       {rows.map((row, index) => (
-        <article key={row.id ?? `${row.title}-${index}`}>
-          <div className="admin-record-main">
-            <div>
-              <h2>{row.title}</h2>
-              <div className="admin-record-meta">
-                {row.meta.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </div>
-            <div className="admin-record-actions">
-              {row.amount ? <strong>{row.amount}</strong> : null}
-              {showInvoiceLink && row.id ? (
-                <Link className="btn ghost" href={`/admin/finances?business=${row.id}`}>
-                  Create invoice
-                </Link>
-              ) : null}
-            </div>
+        <article className="admin-table-row" key={row.id ?? `${row.title}-${index}`}>
+          <div className="primary" data-label="Business">
+            <strong>{row.title}</strong>
+            <span>{fieldText(records[index], "category", "Uncategorized")}</span>
           </div>
-          {row.fields ? (
-            <dl className="admin-details">
-              {row.fields.map((field) => (
-                <div key={`${row.id}-${field.label}`}>
-                  <dt>{field.label}</dt>
-                  <dd>{field.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-          <details className="admin-edit">
-            <summary>Edit</summary>
-            <AdminRecordForm
-              action={updateAdminRecord}
+          <div data-label="Status">
+            <span className="admin-pill">{row.meta[0] ?? "lead"}</span>
+          </div>
+          <div data-label="Contact">
+            <strong>{fieldText(records[index], "contact_name", "No contact")}</strong>
+            <span>{fieldText(records[index], "email", fieldText(records[index], "phone", "No email"))}</span>
+          </div>
+          <div data-label="Next action">
+            <strong>{fieldText(records[index], "next_action", "No next action")}</strong>
+            <span>{fieldText(records[index], "next_follow_up_at", "No follow-up")}</span>
+          </div>
+          <div data-label="Value">
+            <strong>{row.amount ?? "Not set"}</strong>
+          </div>
+          <div className="admin-table-actions" data-label="Commands">
+            {row.id ? (
+              <Link className="btn ghost" href={`/admin/finances?business=${row.id}`}>
+                Invoice
+              </Link>
+            ) : null}
+          </div>
+          <RecordEditControls
+            actionSection="crm"
+            definition={definition}
+            id={row.id}
+            options={options}
+            record={records[index]}
+          />
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function FinanceRecordTable({
+  actionSection,
+  definition,
+  emptyDetail,
+  emptyTitle,
+  label,
+  options,
+  records,
+  rows,
+}: {
+  actionSection: AdminSection;
+  definition: AdminFormDefinition;
+  emptyDetail: string;
+  emptyTitle: string;
+  label: string;
+  options: Awaited<ReturnType<typeof loadAdminOptions>>;
+  records: Record<string, unknown>[];
+  rows: AdminRow[];
+}) {
+  if (rows.length === 0) {
+    return <EmptyState title={emptyTitle} detail={emptyDetail} />;
+  }
+
+  return (
+    <section className="admin-section">
+      <h2 className="admin-section-title">{label}</h2>
+      <div className="admin-data-table finance-table" aria-label={label}>
+        <div className="admin-table-head" aria-hidden="true">
+          <span>Name</span>
+          <span>Status</span>
+          <span>Context</span>
+          <span>Amount</span>
+          <span>Commands</span>
+        </div>
+        {rows.map((row, index) => (
+          <article className="admin-table-row" key={row.id ?? `${row.title}-${index}`}>
+            <div className="primary" data-label="Name">
+              <strong>{row.title}</strong>
+              <span>{row.meta[1] ?? row.meta[0] ?? "Tracked"}</span>
+            </div>
+            <div data-label="Status">
+              <span className="admin-pill">{row.meta[0] ?? "tracked"}</span>
+            </div>
+            <div data-label="Context">
+              <strong>{row.fields?.[0]?.value ?? "No context"}</strong>
+              <span>{row.fields?.[1]?.value ?? row.meta.slice(1).join(" / ")}</span>
+            </div>
+            <div data-label="Amount">
+              <strong>{row.amount ?? "Not set"}</strong>
+            </div>
+            <div className="admin-table-actions" data-label="Commands" />
+            <RecordEditControls
+              actionSection={actionSection}
               definition={definition}
               id={row.id}
               options={options}
               record={records[index]}
-              section={actionSection}
             />
-            {row.id ? (
-              <form action={deleteAdminRecord} className="admin-delete-form">
-                <input name="section" type="hidden" value={actionSection} />
-                <input name="id" type="hidden" value={row.id} />
-                <button className="btn ghost danger" type="submit">
-                  Delete
-                </button>
-              </form>
-            ) : null}
-          </details>
-        </article>
-      ))}
+          </article>
+        ))}
+      </div>
     </section>
+  );
+}
+
+function RecordEditControls({
+  actionSection,
+  definition,
+  id,
+  options,
+  record,
+}: {
+  actionSection: AdminSection;
+  definition: AdminFormDefinition;
+  id?: string;
+  options: Awaited<ReturnType<typeof loadAdminOptions>>;
+  record: Record<string, unknown>;
+}) {
+  return (
+    <details className="admin-edit admin-table-edit">
+      <summary>Edit</summary>
+      <AdminRecordForm
+        action={updateAdminRecord}
+        definition={definition}
+        id={id}
+        options={options}
+        record={record}
+        section={actionSection}
+      />
+      {id ? (
+        <form action={deleteAdminRecord} className="admin-delete-form">
+          <input name="section" type="hidden" value={actionSection} />
+          <input name="id" type="hidden" value={id} />
+          <button className="btn ghost danger" type="submit">
+            Delete
+          </button>
+        </form>
+      ) : null}
+    </details>
   );
 }
 
@@ -439,25 +546,35 @@ function MoneyRows({ rows }: { rows: Record<string, unknown>[] }) {
   }
 
   return (
-    <div className="admin-records">
+    <div className="admin-data-table invoice-table">
+      <div className="admin-table-head" aria-hidden="true">
+        <span>Invoice</span>
+        <span>Status</span>
+        <span>Due</span>
+        <span>Total</span>
+        <span>Commands</span>
+      </div>
       {rows.map((row, index) => (
-        <article key={String(row.id ?? index)}>
-          <div className="admin-record-main">
-            <div>
-              <h2>{String(row.stripe_invoice_id ?? "Local invoice")}</h2>
-              <div className="admin-record-meta">
-                <span>{String(row.status ?? "unknown")}</span>
-                <span>{String(row.due_date ?? "No due date")}</span>
-              </div>
-            </div>
-            <div className="admin-record-actions">
-              <strong>{formatAdminCurrency(typeof row.total_cents === "number" ? row.total_cents : 0)}</strong>
-              {typeof row.hosted_invoice_url === "string" && row.hosted_invoice_url ? (
-                <Link className="btn ghost" href={row.hosted_invoice_url}>
-                  Open invoice
-                </Link>
-              ) : null}
-            </div>
+        <article className="admin-table-row" key={String(row.id ?? index)}>
+          <div className="primary" data-label="Invoice">
+            <strong>{String(row.stripe_invoice_id ?? "Local invoice")}</strong>
+            <span>{String(row.memo ?? "No memo")}</span>
+          </div>
+          <div data-label="Status">
+            <span className="admin-pill">{String(row.status ?? "unknown")}</span>
+          </div>
+          <div data-label="Due">
+            <strong>{String(row.due_date ?? "No due date")}</strong>
+          </div>
+          <div data-label="Total">
+            <strong>{formatAdminCurrency(typeof row.total_cents === "number" ? row.total_cents : 0)}</strong>
+          </div>
+          <div className="admin-table-actions" data-label="Commands">
+            {typeof row.hosted_invoice_url === "string" && row.hosted_invoice_url ? (
+              <Link className="btn ghost" href={row.hosted_invoice_url}>
+                Open
+              </Link>
+            ) : null}
           </div>
         </article>
       ))}
@@ -583,6 +700,13 @@ function inputValue(field: AdminField, value: unknown) {
   if (field.type === "multitext") {
     return Array.isArray(value) ? value.map(String).join("\n") : String(value);
   }
+  return String(value);
+}
+
+function fieldText(row: Record<string, unknown>, key: string, fallback: string) {
+  const value = row[key];
+  if (Array.isArray(value)) return value.map(String).join(", ") || fallback;
+  if (value === null || value === undefined || value === "") return fallback;
   return String(value);
 }
 
