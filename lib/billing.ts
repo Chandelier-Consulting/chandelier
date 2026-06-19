@@ -14,6 +14,59 @@ type LineItem = {
 
 type Customer = Stripe.Customer;
 
+function isBusinessIdSchemaError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    typeof (error as { message?: unknown }).message === "string" &&
+    String((error as { message?: unknown }).message).includes("business_id")
+  );
+}
+
+type InvoiceUpsertRecord = Record<string, unknown>;
+
+async function upsertInvoiceRecord(
+  client: SupabaseClient,
+  payload: InvoiceUpsertRecord,
+): Promise<{ id: string }> {
+  const options = { onConflict: "stripe_invoice_id" };
+
+  const inserted = await client
+    .from("invoices")
+    .upsert(payload, options)
+    .select("id")
+    .single();
+
+  if (!inserted.error) {
+    if (!inserted.data) {
+      throw new Error("Stripe invoice record was not returned.");
+    }
+    return inserted.data as { id: string };
+  }
+
+  if (!isBusinessIdSchemaError(inserted.error)) {
+    throw new Error(inserted.error.message);
+  }
+
+  const fallbackPayload = { ...payload };
+  delete fallbackPayload.business_id;
+
+  const fallback = await client
+    .from("invoices")
+    .upsert(fallbackPayload, options)
+    .select("id")
+    .single();
+
+  if (fallback.error) {
+    throw new Error(fallback.error.message);
+  }
+  if (!fallback.data) {
+    throw new Error("Stripe invoice record was not returned.");
+  }
+
+  return fallback.data as { id: string };
+}
+
 function lineTotal(item: LineItem) {
   return Math.round(item.quantity * item.unit_amount_cents);
 }
@@ -79,9 +132,7 @@ export async function createOneTimeInvoice(
     subtotal - input.discount_cents - input.deposit_cents + input.retainer_cents,
   );
 
-  const { data, error } = await client
-    .from("invoices")
-    .upsert({
+  const data = await upsertInvoiceRecord(client, {
       business_id: input.business_id ?? null,
       stripe_invoice_id: invoice.id,
       hosted_invoice_url: invoice.hosted_invoice_url ?? null,
@@ -93,13 +144,7 @@ export async function createOneTimeInvoice(
       total_cents: total,
       due_date: input.due_date ?? null,
       memo: input.memo ?? null,
-    }, { onConflict: "stripe_invoice_id" })
-    .select("id")
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
+    });
 
   const lineRows = input.line_items.map((item) => ({
     invoice_id: data.id,

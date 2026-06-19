@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminAccessForRequest } from "@/lib/admin-auth";
 import { getServiceSupabase } from "@/lib/supabase";
 import { findOrCreateCustomer, getStripe } from "@/lib/stripe";
+import { createOneTimeInvoice, syncCustomerToBusiness } from "@/lib/billing";
 import { createInvoiceSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -43,102 +44,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Stripe customer has been deleted" }, { status: 400 });
   }
 
-  for (const item of input.line_items) {
-    await stripe.invoiceItems.create({
-      customer: customer.id,
-      description: item.description,
-      amount: Math.round(item.quantity * item.unit_amount_cents),
-      currency: "usd",
-    });
-  }
-
-  const adjustments = [
-    { description: "Discount", amount: -input.discount_cents },
-    { description: "Deposit credit", amount: -input.deposit_cents },
-    { description: "Retainer", amount: input.retainer_cents },
-  ].filter((item) => item.amount !== 0);
-
-  for (const item of adjustments) {
-    await stripe.invoiceItems.create({
-      customer: customer.id,
-      description: item.description,
-      amount: item.amount,
-      currency: "usd",
-    });
-  }
-
-  const invoice = await stripe.invoices.create({
-    customer: customer.id,
-    collection_method: "send_invoice",
-    pending_invoice_items_behavior: "include",
-    days_until_due: input.due_date ? undefined : 14,
-    due_date: input.due_date ? Math.floor(new Date(input.due_date).getTime() / 1000) : undefined,
-    description: input.memo,
-    metadata: {
-      business_id: input.business_id ?? "",
-      discount_cents: String(input.discount_cents),
-      deposit_cents: String(input.deposit_cents),
-      retainer_cents: String(input.retainer_cents),
-    },
+  const invoice = await createOneTimeInvoice(stripe, client, customer, {
+    business_id: input.business_id,
+    memo: input.memo,
+    due_date: input.due_date,
+    discount_cents: input.discount_cents,
+    deposit_cents: input.deposit_cents,
+    retainer_cents: input.retainer_cents,
+    line_items: input.line_items,
   });
-
-  const subtotal = input.line_items.reduce(
-    (sum, item) => sum + Math.round(item.quantity * item.unit_amount_cents),
-    0,
-  );
-  const total = Math.max(
-    0,
-    subtotal - input.discount_cents - input.deposit_cents + input.retainer_cents,
-  );
-
-  const { data, error } = await client
-    .from("invoices")
-    .upsert({
-      business_id: input.business_id ?? null,
-      stripe_invoice_id: invoice.id,
-      hosted_invoice_url: invoice.hosted_invoice_url ?? null,
-      status: invoice.status ?? "draft",
-      subtotal_cents: subtotal,
-      discount_cents: input.discount_cents,
-      deposit_cents: input.deposit_cents,
-      retainer_cents: input.retainer_cents,
-      total_cents: total,
-      due_date: input.due_date ?? null,
-      memo: input.memo ?? null,
-    }, { onConflict: "stripe_invoice_id" })
-    .select("id")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  const lineRows = input.line_items.map((item) => ({
-    invoice_id: data.id,
-    description: item.description,
-    quantity: item.quantity,
-    unit_amount_cents: item.unit_amount_cents,
-  }));
-
-  await client.from("invoice_line_items").delete().eq("invoice_id", data.id);
-
-  const lineInsert = await client.from("invoice_line_items").insert(lineRows);
-  if (lineInsert.error) {
-    return NextResponse.json({ error: lineInsert.error.message }, { status: 500 });
-  }
-
-  if (input.business_id) {
-    await client
-      .from("businesses")
-      .update({ stripe_customer_id: customer.id })
-      .eq("id", input.business_id);
-  }
+  await syncCustomerToBusiness(client, input, customer.id);
 
   return NextResponse.json({
-    id: data.id,
+    id: invoice.id,
     stripe_customer_id: customer.id,
-    stripe_invoice_id: invoice.id,
+    stripe_invoice_id: invoice.stripe_invoice_id,
     hosted_invoice_url: invoice.hosted_invoice_url,
     status: invoice.status,
+    invoice_status: invoice.status,
+    one_time_total_cents: invoice.total_cents,
   });
 }

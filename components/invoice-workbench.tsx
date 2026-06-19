@@ -23,6 +23,8 @@ type InvoiceResult = {
   monthly_total_cents?: number;
 };
 
+type InvoiceMode = "basic" | "billing-package";
+
 type BusinessOption = {
   id: string;
   name: string;
@@ -67,8 +69,9 @@ export function InvoiceWorkbench({
   const [stripeCustomerId, setStripeCustomerId] = useState(selectedBusiness?.stripe_customer_id ?? "");
   const [result, setResult] = useState<InvoiceResult | null>(null);
   const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
+  const [mode, setMode] = useState<InvoiceMode>("basic");
   const [message, setMessage] = useState(
-    "Create upfront invoice charges and recurring subscription charges in one billing package.",
+    "Create a one-time invoice and send it when you're ready.",
   );
 
   const oneTimeSubtotal = useMemo(
@@ -80,6 +83,16 @@ export function InvoiceWorkbench({
     () => recurringItems.reduce((sum, item) => sum + item.quantity * item.unit_amount_cents, 0),
     [recurringItems],
   );
+
+  function clearResult(nextMode: InvoiceMode) {
+    setResult(null);
+    setMessage(
+      nextMode === "basic"
+        ? "Create a one-time invoice and send it when you're ready."
+        : "Create an invoicing package with one-time and monthly charges.",
+    );
+    setStatus("idle");
+  }
 
   function updateOneTimeItem(index: number, patch: Partial<LineItem>) {
     setOneTimeItems((current) =>
@@ -96,7 +109,10 @@ export function InvoiceWorkbench({
   function selectBusiness(id: string) {
     setSelectedBusinessId(id);
     const business = businesses.find((item) => item.id === id);
-    if (!business) return;
+    if (!business) {
+      setStripeCustomerId("");
+      return;
+    }
     setCustomerName(business.name);
     if (business.email) setCustomerEmail(business.email);
     setStripeCustomerId(business.stripe_customer_id ?? "");
@@ -105,26 +121,45 @@ export function InvoiceWorkbench({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("working");
-    setMessage("Creating combined billing package in Stripe...");
+    setMessage(
+      mode === "basic"
+        ? "Creating one-time invoice in Stripe..."
+        : "Creating billing package in Stripe...",
+    );
 
     const formData = new FormData(event.currentTarget);
-    const payload = {
+    const commonPayload = {
       business_id: String(formData.get("business_id") ?? "") || undefined,
       customer_name: String(formData.get("customer_name") ?? ""),
       customer_email: String(formData.get("customer_email") ?? ""),
       stripe_customer_id: String(formData.get("stripe_customer_id") ?? "") || undefined,
       memo: String(formData.get("memo") ?? "") || undefined,
       due_date: String(formData.get("due_date") ?? "") || undefined,
-      months: Number(formData.get("months") ?? 6),
-      days_until_due: Number(formData.get("days_until_due") ?? 14),
       discount_cents: dollarsToCents(formData.get("discount")),
       deposit_cents: dollarsToCents(formData.get("deposit")),
       retainer_cents: dollarsToCents(formData.get("retainer")),
-      one_time_items: oneTimeItems,
-      recurring_items: recurringItems,
     };
 
-    const response = await fetch("/api/stripe/billing", {
+    const endpoint =
+      mode === "basic"
+        ? "/api/stripe/invoices"
+        : "/api/stripe/billing";
+
+    const payload =
+      mode === "basic"
+        ? {
+            ...commonPayload,
+            line_items: oneTimeItems,
+          }
+        : {
+            ...commonPayload,
+            one_time_items: oneTimeItems,
+            recurring_items: recurringItems,
+            months: Number(formData.get("months") ?? 6),
+            days_until_due: Number(formData.get("days_until_due") ?? 14),
+          };
+
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
@@ -137,9 +172,16 @@ export function InvoiceWorkbench({
       return;
     }
 
-    setResult(body);
+    setResult({
+      ...body,
+      invoice_status: mode === "basic" ? body?.status : body?.invoice_status,
+    });
     setStatus("idle");
-    setMessage("Billing package created. Review the invoice, then finalize and send when ready.");
+    setMessage(
+      mode === "basic"
+        ? "Invoice created. You can open the invoice and send it after review."
+        : "Billing package created. Review the invoice, then finalize and send when ready.",
+    );
   }
 
   async function runAction(action: "finalize" | "send" | "void") {
@@ -172,6 +214,37 @@ export function InvoiceWorkbench({
 
   return (
     <div className="invoice-workbench">
+      <div className="invoice-panel">
+        <div className="invoice-head">
+          <h2>Issue invoice</h2>
+          <div className="form-grid compact">
+            <label className="field">
+              <input
+                type="radio"
+                name="invoice-mode"
+                checked={mode === "basic"}
+                onChange={() => {
+                  setMode("basic");
+                  clearResult("basic");
+                }}
+              />
+              Basic one-time invoice
+            </label>
+            <label className="field">
+              <input
+                type="radio"
+                name="invoice-mode"
+                checked={mode === "billing-package"}
+                onChange={() => {
+                  setMode("billing-package");
+                  clearResult("billing-package");
+                }}
+              />
+              One-time + recurring package
+            </label>
+          </div>
+        </div>
+      </div>
       <form onSubmit={submit} className="invoice-form">
         <div className="invoice-panel">
           <h2>Customer</h2>
@@ -207,7 +280,11 @@ export function InvoiceWorkbench({
             </label>
             <label className="field">
               Subscription invoice due in days
-              <input name="days_until_due" type="number" min="1" max="90" defaultValue="14" required />
+              {mode === "billing-package" ? (
+                <input name="days_until_due" type="number" min="1" max="90" defaultValue="14" required />
+              ) : (
+                <input disabled value="14" />
+              )}
             </label>
           </div>
         </div>
@@ -271,64 +348,66 @@ export function InvoiceWorkbench({
           ))}
         </div>
 
-        <div className="invoice-panel">
-          <div className="invoice-head">
-            <h2>Monthly subscription charges</h2>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() =>
-                setRecurringItems((current) => [
-                  ...current,
-                  { description: "Additional monthly service", quantity: 1, unit_amount_cents: 50000 },
-                ])
-              }
-            >
-              Add item
-            </button>
-          </div>
-          {recurringItems.map((item, index) => (
-            <div className="line-editor" key={`recurring-${item.description}-${index}`}>
-              <label className="field">
-                Description
-                <input
-                  value={item.description}
-                  onChange={(event) => updateRecurringItem(index, { description: event.target.value })}
-                  required
-                />
-              </label>
-              <label className="field">
-                Qty
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={item.quantity}
-                  onChange={(event) => updateRecurringItem(index, { quantity: Number(event.target.value) })}
-                  required
-                />
-              </label>
-              <label className="field">
-                Unit price
-                <input
-                  value={(item.unit_amount_cents / 100).toString()}
-                  onChange={(event) =>
-                    updateRecurringItem(index, { unit_amount_cents: dollarsToCents(event.target.value) })
-                  }
-                  required
-                />
-              </label>
+        {mode === "billing-package" ? (
+          <div className="invoice-panel">
+            <div className="invoice-head">
+              <h2>Monthly subscription charges</h2>
               <button
                 type="button"
-                className="remove-line"
-                onClick={() => setRecurringItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
-                aria-label="Remove recurring line item"
+                className="btn ghost"
+                onClick={() =>
+                  setRecurringItems((current) => [
+                    ...current,
+                    { description: "Additional monthly service", quantity: 1, unit_amount_cents: 50000 },
+                  ])
+                }
               >
-                Remove
+                Add item
               </button>
             </div>
-          ))}
-        </div>
+            {recurringItems.map((item, index) => (
+              <div className="line-editor" key={`recurring-${item.description}-${index}`}>
+                <label className="field">
+                  Description
+                  <input
+                    value={item.description}
+                    onChange={(event) => updateRecurringItem(index, { description: event.target.value })}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  Qty
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={item.quantity}
+                    onChange={(event) => updateRecurringItem(index, { quantity: Number(event.target.value) })}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  Unit price
+                  <input
+                    value={(item.unit_amount_cents / 100).toString()}
+                    onChange={(event) =>
+                      updateRecurringItem(index, { unit_amount_cents: dollarsToCents(event.target.value) })
+                    }
+                    required
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="remove-line"
+                  onClick={() => setRecurringItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                  aria-label="Remove recurring line item"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <div className="invoice-panel">
           <h2>Terms and adjustments</h2>
@@ -347,7 +426,11 @@ export function InvoiceWorkbench({
             </label>
             <label className="field">
               Subscription months
-              <input name="months" type="number" min="1" max="36" defaultValue="6" required />
+              {mode === "billing-package" ? (
+                <input name="months" type="number" min="1" max="36" defaultValue="6" required />
+              ) : (
+                <input disabled value="N/A" />
+              )}
             </label>
             <label className="field full">
               Memo
@@ -363,10 +446,12 @@ export function InvoiceWorkbench({
           </div>
           <div>
             <span>Monthly subtotal</span>
-            <strong>{formatCurrency(recurringSubtotal)}</strong>
+            <strong>
+              {mode === "billing-package" ? formatCurrency(recurringSubtotal) : "N/A"}
+            </strong>
           </div>
           <button className="btn" type="submit" disabled={status === "working"}>
-            {status === "working" ? "Working..." : "Create billing package"}
+            {status === "working" ? "Working..." : mode === "basic" ? "Create invoice" : "Create billing package"}
           </button>
         </div>
       </form>
