@@ -43,7 +43,7 @@ export default async function AdminSectionPage({
   searchParams,
 }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ saved?: string; deleted?: string; error?: string; business?: string }>;
+  searchParams: Promise<{ saved?: string; deleted?: string; error?: string }>;
 }) {
   const { section } = await params;
   const notice = await searchParams;
@@ -63,7 +63,7 @@ export default async function AdminSectionPage({
           <LocalDemoNotice missing={missing} />
           {section === "dashboard" ? <Dashboard demo /> : null}
           {section === "crm" ? <Crm demo /> : null}
-          {section === "finances" ? <Finances demo initialBusinessId={notice.business} /> : null}
+          {section === "finances" ? <Finances demo /> : null}
           {section === "settings" ? <Settings /> : null}
         </section>
       );
@@ -83,7 +83,7 @@ export default async function AdminSectionPage({
       <AdminNotice notice={notice} />
       {section === "dashboard" ? <Dashboard client={client} /> : null}
       {section === "crm" ? <Crm client={client} /> : null}
-      {section === "finances" ? <Finances client={client} initialBusinessId={notice.business} /> : null}
+      {section === "finances" ? <Finances client={client} /> : null}
       {section === "settings" ? <Settings /> : null}
     </section>
   );
@@ -191,14 +191,12 @@ function CrmPipeline({ rows }: { rows: AdminRow[] }) {
   );
 }
 
-async function Finances({
+ async function Finances({
   client,
   demo,
-  initialBusinessId,
 }: {
   client?: AdminClient;
   demo?: boolean;
-  initialBusinessId?: string;
 }) {
   const [finance, options, expenseRecords, contractorRecords, payoutRecords] = demo
     ? [
@@ -215,13 +213,6 @@ async function Finances({
         loadAdminRecords(client!, "contractors"),
         loadAdminRecords(client!, "payouts"),
       ]);
-  const businesses = finance.businesses.map((business) => ({
-    id: String(business.id),
-    name: typeof business.name === "string" ? business.name : "Unnamed business",
-    email: typeof business.email === "string" ? business.email : "",
-    stripe_customer_id: typeof business.stripe_customer_id === "string" ? business.stripe_customer_id : "",
-  }));
-
   return (
     <div className="admin-workspace">
       <div className="admin-metrics finance-metrics">
@@ -243,9 +234,9 @@ async function Finances({
         </article>
       </div>
 
-      <details className="admin-command-panel" open={Boolean(initialBusinessId)}>
+      <details className="admin-command-panel" open>
         <summary>Create invoice package</summary>
-        <InvoiceWorkbench businesses={businesses} initialBusinessId={initialBusinessId} />
+        <InvoiceWorkbench />
       </details>
 
       <section className="admin-command-grid" aria-label="Finance commands">
@@ -418,13 +409,13 @@ function CrmRecordTable({
           <div data-label="Value">
             <strong>{row.amount ?? "Not set"}</strong>
           </div>
-          <div className="admin-table-actions" data-label="Commands">
-            {row.id ? (
-              <Link className="btn ghost" href={`/admin/finances?business=${row.id}`}>
-                Invoice
-              </Link>
-            ) : null}
-          </div>
+	          <div className="admin-table-actions" data-label="Commands">
+	            {row.id ? (
+	              <Link className="btn ghost" href={`/admin/finances`}>
+	                Invoice
+	              </Link>
+	            ) : null}
+	          </div>
           <RecordEditControls
             actionSection="crm"
             definition={definition}
