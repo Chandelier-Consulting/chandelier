@@ -96,7 +96,7 @@ export default async function AdminProjectsPage({
   const statuses = Array.from(new Set(projectsRaw.map((entry) => entry.status))).filter(Boolean);
 
   return (
-    <section className="admin-page">
+    <section className="admin-page admin-projects-page">
       <header className="admin-header">
         <div>
           <p>Project pipeline</p>
@@ -109,7 +109,7 @@ export default async function AdminProjectsPage({
       {saved ? <p className="admin-notice">Saved.</p> : null}
       {!missing.length ? null : <p className="admin-notice">Missing Supabase config: {missing.join(", ")}</p>}
 
-      <div className="admin-command-grid">
+      <div className="admin-command-grid admin-projects-command-stack">
         <form action={createProject} className="admin-form-card">
           <h2 className="admin-section-title">Create project</h2>
           <div className="form-grid">
@@ -249,17 +249,10 @@ export default async function AdminProjectsPage({
 
       <section className="admin-section">
         <h2 className="admin-section-title">Projects ({filtered.length})</h2>
-        <div className="admin-data-table">
-          <div className="admin-table-head" aria-hidden="true">
-            <span>Project</span>
-            <span>Client</span>
-            <span>Value</span>
-            <span>Phase</span>
-            <span>Commands</span>
-          </div>
+        <div className="admin-project-stack">
           {filtered.length === 0 ? (
-            <article className="admin-table-row">
-              <div className="primary" data-label="Project">
+            <article className="admin-project-card">
+              <div className="admin-project-main">
                 <strong>No projects match filters.</strong>
                 <span>Adjust phase/status filters to show rows.</span>
               </div>
@@ -269,21 +262,28 @@ export default async function AdminProjectsPage({
             const clientName = clientsById.get(project.client_id || "")?.legal_name || "Unassigned";
             const projectNextPhase = nextPhase(project.phase);
             return (
-              <article className="admin-table-row" key={project.id}>
-                <div className="primary" data-label="Project">
+              <article className="admin-project-card" key={project.id}>
+                <div className="admin-project-main">
                   <strong>{project.name}</strong>
                   <span>{project.scope_summary || "No scope summary"}</span>
                 </div>
-                <div data-label="Client">
+
+                <div className="admin-project-detail">
+                  <span>Client</span>
                   <strong>{clientName}</strong>
                 </div>
-                <div data-label="Value">
+
+                <div className="admin-project-detail">
+                  <span>Value</span>
                   <strong>{formatMoney(project.total_amount_cents)}</strong>
                 </div>
-                <div data-label="Phase">
+
+                <div className="admin-project-detail">
+                  <span>Phase</span>
                   <span className="admin-pill">{projectPhaseLabel(project.phase)}</span>
                 </div>
-                <div className="admin-table-actions" data-label="Commands">
+
+                <div className="admin-project-actions">
                   <Link className="btn" href={`/admin/projects/${project.id}`}>
                     Open
                   </Link>
