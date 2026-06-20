@@ -1,0 +1,21 @@
+{{PROJECT_NAME}} - Statement of Work
+
+Client: {{CLIENT_LEGAL_NAME}}
+Contact: {{CLIENT_DISPLAY_NAME}}
+Email: {{CLIENT_EMAIL}}
+
+Scope Summary:
+{{SCOPE_SUMMARY}}
+
+Budget Summary:
+Total Amount: {{TOTAL_AMOUNT}}
+Deposit Amount: {{DEPOSIT_AMOUNT}}
+Final Amount: {{FINAL_AMOUNT}}
+
+Start Date: {{START_DATE}}
+Target End Date: {{TARGET_END_DATE}}
+
+Deliverables:
+{{DELIVERABLES}}
+
+Electronic signature confirms acceptance of the Statement of Work.

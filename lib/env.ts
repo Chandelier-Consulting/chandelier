@@ -9,6 +9,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   ADMIN_EMAILS: z.string().optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
+  AUTO_ADVANCE_PHASE_ON_SIGN: z
+    .union([z.string(), z.boolean()])
+    .transform((value) => value === true || String(value).toLowerCase() === "true")
+    .default(false),
 });
 
 export const env = envSchema.parse({

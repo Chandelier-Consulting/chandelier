@@ -1,0 +1,21 @@
+{{PROJECT_NAME}}
+
+Master Services Agreement
+
+Client: {{CLIENT_LEGAL_NAME}}
+Email: {{CLIENT_EMAIL}}
+
+This Agreement is between Chandelier Consulting and {{CLIENT_DISPLAY_NAME}} for:
+{{SCOPE_SUMMARY}}
+
+Total Project Amount: {{TOTAL_AMOUNT}}
+Deposit Amount: {{DEPOSIT_AMOUNT}}
+Final Amount: {{FINAL_AMOUNT}}
+
+Project Start: {{START_DATE}}
+Target End: {{TARGET_END_DATE}}
+
+Deliverables:
+{{DELIVERABLES}}
+
+By providing a typed signature, the undersigned acknowledges and agrees to the terms for this agreement.

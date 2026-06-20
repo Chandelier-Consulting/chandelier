@@ -6,10 +6,21 @@ import { adminSections } from "@/lib/admin-data";
 
 export function AdminNav() {
   const selected = useSelectedLayoutSegment() ?? "dashboard";
+  const routeItems = [
+    ...adminSections,
+    { slug: "clients", label: "Clients" as const, description: "Client records and contact details." },
+    { slug: "projects", label: "Projects" as const, description: "Project pipeline, docs, and billing." },
+  ];
+  const seen: Record<string, true> = {};
+  const navItems = routeItems.filter((item) => {
+    if (seen[item.slug]) return false;
+    seen[item.slug] = true;
+    return true;
+  });
 
   return (
     <nav className="admin-nav" aria-label="Admin sections">
-      {adminSections.map((section) => {
+      {navItems.map((section) => {
         const isActive = selected === section.slug;
         return (
           <Link

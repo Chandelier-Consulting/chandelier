@@ -1,0 +1,18 @@
+Agency Procedures
+
+Project: {{PROJECT_NAME}}
+Client: {{CLIENT_LEGAL_NAME}}
+Email: {{CLIENT_EMAIL}}
+
+Scope Summary:
+{{SCOPE_SUMMARY}}
+
+Deliverables:
+{{DELIVERABLES}}
+
+Planned Compensation:
+{{TOTAL_AMOUNT}}
+Deposit Amount: {{DEPOSIT_AMOUNT}}
+Final Amount: {{FINAL_AMOUNT}}
+
+This document complements the Signed MSA for process and workflow expectations.

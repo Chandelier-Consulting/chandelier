@@ -1511,11 +1511,80 @@ h4 {
   text-transform: capitalize;
 }
 
+.admin-phase-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-phase-step {
+  border: 1px solid oklch(0.34 0.018 230 / 0.62);
+  border-radius: 8px;
+  padding: 11px 12px;
+}
+
+.admin-phase-step.is-reached {
+  border-color: oklch(0.84 0.13 88 / 0.48);
+  background: oklch(0.84 0.13 88 / 0.08);
+}
+
+.status-ok,
+.status-work,
+.status-bad,
+.status-muted {
+  background: transparent !important;
+  border-color: oklch(0.34 0.018 230 / 0.55);
+  color: var(--muted) !important;
+}
+
+.status-ok {
+  border-color: oklch(0.62 0.15 150 / 0.48);
+  color: oklch(0.8 0.13 150) !important;
+}
+
+.status-work {
+  border-color: oklch(0.83 0.09 75 / 0.58);
+  color: var(--gold) !important;
+}
+
+.status-bad {
+  border-color: oklch(0.5 0.13 32 / 0.58);
+  color: var(--copper) !important;
+}
+
 .admin-table-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.admin-tab {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 15px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+  text-decoration: none;
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+
+.admin-tab:hover,
+.admin-tab.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.admin-tab.active {
+  background: oklch(0.84 0.13 88 / 0.11);
 }
 
 .crm-table .admin-table-actions {

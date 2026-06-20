@@ -1,0 +1,20 @@
+{{PROJECT_NAME}} Design System Deliverables
+
+Client: {{CLIENT_LEGAL_NAME}}
+Email: {{CLIENT_EMAIL}}
+
+Scope Summary:
+{{SCOPE_SUMMARY}}
+
+Design System Items:
+{{DELIVERABLES}}
+
+Project Dates:
+Start: {{START_DATE}}
+Target End: {{TARGET_END_DATE}}
+
+Total Amount: {{TOTAL_AMOUNT}}
+Deposit Amount: {{DEPOSIT_AMOUNT}}
+Final Amount: {{FINAL_AMOUNT}}
+
+Signed electronically by {{CLIENT_DISPLAY_NAME}}.
