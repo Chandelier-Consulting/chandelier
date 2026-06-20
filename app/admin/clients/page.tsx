@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
 import { createClient, deleteClient, updateClient } from "@/app/admin/pipeline-actions";
 import { loadClients } from "@/lib/admin-pipeline-data";
 import { getServiceSupabase } from "@/lib/supabase";
@@ -12,13 +10,25 @@ export default async function AdminClientsPage({
 }: {
   searchParams: Promise<{ saved?: string; deleted?: string; error?: string }>;
 }) {
-  await requireAdminActor();
   const { saved, deleted, error } = await searchParams;
 
   const { client, missing } = getServiceSupabase();
   if (!client) {
-    notFound();
+    return (
+      <section className="admin-page">
+        <header className="admin-header">
+          <div>
+            <p>Admin clients</p>
+            <h1>Clients</h1>
+          </div>
+          <span>Manage legal entities, contacts, and billing settings for project pipelines.</span>
+        </header>
+        <p className="admin-notice">Supabase is not configured: {missing.join(", ")}</p>
+      </section>
+    );
   }
+
+  await requireAdminActor();
 
   const clients = await loadClients(client);
 

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import {
   createProject,
   setProjectPhaseAction,
@@ -55,12 +54,24 @@ export default async function AdminProjectsPage({
   searchParams: Promise<{ saved?: string; error?: string; phase?: string; status?: string; client?: string }>;
 }) {
   const { saved, error, phase, status, client: clientFilter } = await searchParams;
-  await requireAdminActor();
 
   const { client, missing } = getServiceSupabase();
   if (!client) {
-    notFound();
+    return (
+      <section className="admin-page">
+        <header className="admin-header">
+          <div>
+            <p>Project pipeline</p>
+            <h1>Projects</h1>
+          </div>
+          <span>Build and manage projects through phases, documents, and billing milestones.</span>
+        </header>
+        <p className="admin-notice">Supabase is not configured: {missing.join(", ")}</p>
+      </section>
+    );
   }
+
+  await requireAdminActor();
 
   const [projectsRaw, clients, patterns] = await Promise.all([
     loadProjects(client),
