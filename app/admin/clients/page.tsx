@@ -21,7 +21,7 @@ export default async function AdminClientsPage({
             <p>Admin clients</p>
             <h1>Clients</h1>
           </div>
-          <span>Manage legal entities, contacts, and billing settings for project pipelines.</span>
+          <span>Add restaurants fast, then fill in contact details only when they matter.</span>
         </header>
         <p className="admin-notice">Supabase is not configured: {missing.join(", ")}</p>
       </section>
@@ -39,7 +39,7 @@ export default async function AdminClientsPage({
           <p>Admin clients</p>
           <h1>Clients</h1>
         </div>
-        <span>Manage legal entities, contacts, and billing settings for project pipelines.</span>
+        <span>Add restaurants fast, then fill in contact details only when they matter.</span>
       </header>
 
       {error ? <p className="admin-notice">{error}</p> : null}
@@ -51,37 +51,9 @@ export default async function AdminClientsPage({
         <form action={createClient} className="admin-record-form">
           <h2 className="admin-section-title">Create client</h2>
           <div className="form-grid">
-            <label className="field">
-              Legal name
-              <input name="legal_name" required />
-            </label>
-            <label className="field">
-              Display name
-              <input name="display_name" />
-            </label>
-            <label className="field">
-              Contact name
-              <input name="contact_name" />
-            </label>
-            <label className="field">
-              Email
-              <input name="email" type="email" />
-            </label>
-            <label className="field">
-              Phone
-              <input name="phone" />
-            </label>
-            <label className="field">
-              Billing email
-              <input name="billing_email" type="email" />
-            </label>
-            <label className="field">
-              Website
-              <input name="company_website" type="url" />
-            </label>
             <label className="field full">
-              Address
-              <textarea name="address" />
+              Restaurant name
+              <input name="restaurant_name" placeholder="Rivera Bakery" required />
             </label>
           </div>
           <button className="btn" type="submit">
@@ -101,12 +73,12 @@ export default async function AdminClientsPage({
               <article key={record.id}>
                 <div className="admin-record-main">
                   <div>
-                    <h2>{record.legal_name || record.display_name || "Unnamed client"}</h2>
+                    <h2>{record.display_name || record.legal_name || record.name || "Unnamed client"}</h2>
                     <div className="admin-record-meta">
-                      <span>{record.display_name ? `Display: ${record.display_name}` : "Display name missing"}</span>
-                      <span>{record.contact_name || "Contact missing"}</span>
+                      <span>{record.legal_name || record.display_name || record.name || "Name set"}</span>
+                      <span>{record.contact_name || "Contact optional"}</span>
                       <span>{record.email || "Email missing"}</span>
-                      <span>{record.phone || "Phone missing"}</span>
+                      <span>{record.phone || "Phone optional"}</span>
                     </div>
                   </div>
                 <div className="admin-record-actions">
@@ -135,8 +107,12 @@ export default async function AdminClientsPage({
                     <input name="id" type="hidden" value={record.id} />
                     <div className="form-grid">
                       <label className="field">
+                        Restaurant name
+                        <input defaultValue={record.display_name || record.name || record.legal_name || ""} name="restaurant_name" required />
+                      </label>
+                      <label className="field">
                         Legal name
-                        <input defaultValue={record.legal_name || ""} name="legal_name" required />
+                        <input defaultValue={record.legal_name || ""} name="legal_name" />
                       </label>
                       <label className="field">
                         Display name

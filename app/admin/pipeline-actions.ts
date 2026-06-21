@@ -62,7 +62,7 @@ function toCents(value: string | null, fallback = 0) {
 }
 
 function parseDocumentType(raw: string): DocumentType | null {
-  if (raw === "msa" || raw === "sow" || raw === "agency_procedures" || raw === "design_system") {
+  if (raw === "checkout_agreement" || raw === "msa" || raw === "sow" || raw === "agency_procedures" || raw === "design_system") {
     return raw;
   }
   return null;
@@ -101,14 +101,15 @@ export async function createClient(formData: FormData) {
   await assertAdmin();
   const client = requireAdminClient();
 
-  const legalName = value(formData, "legal_name");
-  if (!legalName) {
-    redirectWithError("/admin/clients", "Legal name is required.");
+  const restaurantName = value(formData, "restaurant_name") || value(formData, "display_name") || value(formData, "legal_name");
+  if (!restaurantName) {
+    redirectWithError("/admin/clients", "Restaurant name is required.");
   }
 
   const payload = {
-    legalName,
-    displayName: value(formData, "display_name") || legalName,
+    restaurantName,
+    legalName: value(formData, "legal_name"),
+    displayName: value(formData, "display_name") || restaurantName,
     contactName: value(formData, "contact_name"),
     email: value(formData, "email"),
     phone: value(formData, "phone"),
@@ -135,6 +136,7 @@ export async function updateClient(formData: FormData) {
   if (!id) redirectWithError("/admin/clients", "Client id is missing.");
 
   const payload = {
+    restaurantName: value(formData, "restaurant_name"),
     legalName: value(formData, "legal_name"),
     displayName: value(formData, "display_name"),
     contactName: value(formData, "contact_name"),
@@ -204,7 +206,7 @@ export async function createProject(formData: FormData) {
       clientId,
       name,
       status: value(formData, "status") || "active",
-      phase: parsePhase(value(formData, "phase")) || "lead_qualified",
+      phase: parsePhase(value(formData, "phase")) || "checkout_agreement",
       totalAmountCents,
       currency: value(formData, "currency") || "USD",
       billingPatternId,

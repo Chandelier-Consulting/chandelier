@@ -4,6 +4,8 @@ export type ProjectPhase =
   | "lead_qualified"
   | "discovery_complete"
   | "proposal_draft"
+  | "checkout_agreement"
+  | "checkout_paid"
   | "msa_issued"
   | "msa_signed"
   | "sow_issued"
@@ -16,27 +18,26 @@ export type ProjectPhase =
   | "final_paid"
   | "handoff_complete";
 
-export const projectPhaseOrder: ProjectPhase[] = [
+export const checkoutAgreementPhases = [
   "lead_qualified",
-  "discovery_complete",
-  "proposal_draft",
-  "msa_issued",
-  "msa_signed",
-  "sow_issued",
-  "sow_signed",
+  "checkout_agreement",
   "deposit_invoice_ready",
-  "deposit_paid",
+  "checkout_paid",
   "build_active",
   "revision",
   "final_invoice_ready",
   "final_paid",
   "handoff_complete",
-];
+] as const satisfies ProjectPhase[];
+
+export const projectPhaseOrder: ProjectPhase[] = [...checkoutAgreementPhases];
 
 export const projectPhaseLabels: Record<ProjectPhase, string> = {
   lead_qualified: "Lead Qualified",
   discovery_complete: "Discovery Complete",
   proposal_draft: "Proposal Draft",
+  checkout_agreement: "Checkout Agreement",
+  checkout_paid: "Checkout Paid",
   msa_issued: "MSA Issued",
   msa_signed: "MSA Signed",
   sow_issued: "SOW Issued",
@@ -50,12 +51,22 @@ export const projectPhaseLabels: Record<ProjectPhase, string> = {
   handoff_complete: "Handoff Complete",
 };
 
+const legacyProjectPhases = [
+  "discovery_complete",
+  "proposal_draft",
+  "msa_issued",
+  "msa_signed",
+  "sow_issued",
+  "sow_signed",
+  "deposit_paid",
+] as const satisfies ProjectPhase[];
+
 export function projectPhaseLabel(phase: string) {
   return projectPhaseLabels[phase as ProjectPhase] ?? phase.replace(/_/g, " ");
 }
 
 export function isProjectPhase(phase: string): phase is ProjectPhase {
-  return projectPhaseOrder.includes(phase as ProjectPhase);
+  return [...projectPhaseOrder, ...legacyProjectPhases].includes(phase as ProjectPhase);
 }
 
 export function nextProjectPhase(phase: ProjectPhase) {
@@ -64,9 +75,12 @@ export function nextProjectPhase(phase: ProjectPhase) {
   return projectPhaseOrder[index + 1] ?? "handoff_complete";
 }
 
-export type DocumentType = "msa" | "sow" | "agency_procedures" | "design_system";
+export type DocumentType = "checkout_agreement" | "msa" | "sow" | "agency_procedures" | "design_system";
+
+export const lightweightAgreementDocumentTypes = ["checkout_agreement"] as const satisfies DocumentType[];
 
 export const documentTypeLabels: Record<DocumentType, string> = {
+  checkout_agreement: "Checkout Agreement",
   msa: "MSA",
   sow: "SOW",
   agency_procedures: "Agency Procedures",
@@ -78,6 +92,7 @@ export function documentTypeLabel(type: DocumentType) {
 }
 
 export const templatePathByType: Record<DocumentType, string> = {
+  checkout_agreement: "templates/chandelier-msa-clean.docx",
   msa: "templates/chandelier-msa-clean.docx",
   sow: "templates/chandelier-sow-template-clean.docx",
   agency_procedures: "templates/chandelier-agency-procedures-clean.docx",
@@ -178,6 +193,66 @@ export function normalizeDeliverables(raw: unknown) {
   return [];
 }
 
+export function normalizeClientInput(input: {
+  restaurantName?: string;
+  legalName?: string;
+  displayName?: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  billingEmail?: string;
+  companyWebsite?: string;
+  address?: string;
+}) {
+  const name = (input.restaurantName || input.displayName || input.legalName || "").trim();
+  const displayName = (input.displayName || name || "Client").trim();
+
+  return {
+    name: displayName,
+    legalName: (input.legalName || displayName).trim(),
+    displayName,
+    contactName: (input.contactName || "").trim(),
+    email: (input.email || "").trim(),
+    phone: (input.phone || "").trim(),
+    billingEmail: (input.billingEmail || input.email || "").trim(),
+    companyWebsite: (input.companyWebsite || "").trim(),
+    address: (input.address || "").trim(),
+  };
+}
+
+export function normalizeProjectInput(input: {
+  clientId: string;
+  restaurantName?: string;
+  name?: string;
+  status?: string;
+  phase?: string;
+  totalAmountCents: number;
+  currency?: string;
+  billingPatternId?: string;
+  scopeSummary?: string;
+  deliverables?: string[];
+  startDate?: string;
+  targetEndDate?: string;
+}) {
+  const restaurantName = (input.restaurantName || "").trim();
+  const name = (input.name || (restaurantName ? `${restaurantName} launch` : "Launch project")).trim();
+  const amount = Number.isFinite(input.totalAmountCents) ? Math.round(input.totalAmountCents) : 0;
+
+  return {
+    clientId: input.clientId,
+    name,
+    status: (input.status || "active").trim(),
+    phase: isProjectPhase(input.phase || "") ? (input.phase as ProjectPhase) : "checkout_agreement",
+    totalAmountCents: Math.max(0, amount),
+    currency: (input.currency || "USD").trim(),
+    billingPatternId: (input.billingPatternId || "50-50").trim(),
+    scopeSummary: (input.scopeSummary || "").trim(),
+    deliverables: normalizeDeliverables(input.deliverables),
+    startDate: (input.startDate || "").trim(),
+    targetEndDate: (input.targetEndDate || "").trim(),
+  };
+}
+
 export function buildBillingStepRows(totalAmountCents: number, pattern: BillingPattern, _currency = "USD") {
   if (!pattern.steps.length) return [];
 
@@ -249,6 +324,7 @@ export function shouldAutoAdvanceOnSign() {
 }
 
 export const documentSignablePhases: Record<DocumentType, ProjectPhase> = {
+  checkout_agreement: "checkout_paid",
   msa: "msa_signed",
   sow: "sow_signed",
   agency_procedures: "build_active",
@@ -256,6 +332,7 @@ export const documentSignablePhases: Record<DocumentType, ProjectPhase> = {
 };
 
 export const autoIssuingActionByPhase: Partial<Record<DocumentType, ProjectPhase>> = {
+  checkout_agreement: "deposit_invoice_ready",
   msa: "deposit_invoice_ready",
   sow: "final_invoice_ready",
 };

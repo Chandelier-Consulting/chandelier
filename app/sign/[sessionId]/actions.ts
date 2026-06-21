@@ -36,7 +36,7 @@ export async function submitSigningAction(formData: FormData) {
   }
 
   if (!signerName) {
-    redirect(`${target}&error=${encodeURIComponent("Please provide your full legal name to sign.")}`);
+    redirect(`${target}&error=${encodeURIComponent("Please provide your name to sign.")}`);
   }
 
   if (!signerEmail) {

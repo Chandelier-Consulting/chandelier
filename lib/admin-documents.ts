@@ -255,12 +255,12 @@ function mapBillingSteps(workspace: ProjectWorkspace) {
     {
       label: "Deposit",
       amountCents: Math.round(workspace.project.total_amount_cents * 0.5),
-      triggerPhase: "msa_signed",
+      triggerPhase: "deposit_invoice_ready",
     },
     {
       label: "Final",
       amountCents: Math.round(workspace.project.total_amount_cents * 0.5),
-      triggerPhase: "sow_signed",
+      triggerPhase: "final_invoice_ready",
     },
   ];
 }
