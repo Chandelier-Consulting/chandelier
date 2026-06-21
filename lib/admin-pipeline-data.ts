@@ -601,15 +601,15 @@ export function computeDefaultBillingSteps(totalAmountCents: number, pattern: Bi
 }
 
 export async function createProjectWithBillingSteps(client: SupabaseClient, input: ProjectInput) {
+  const customSteps = normalizeCustomSteps(input.customSteps);
   const pattern =
     input.billingPatternId === "custom"
       ? null
       : ((await loadBillingPatternById(client, input.billingPatternId)) ?? defaultBillingPatterns[0]);
-  if (!pattern) {
+  if (!pattern && customSteps.length === 0) {
     safeQueryError("Please select a billing pattern.");
   }
 
-  const customSteps = normalizeCustomSteps(input.customSteps);
   const payload = toProjectPayload(input);
   const rows = await client
     .from("projects")
