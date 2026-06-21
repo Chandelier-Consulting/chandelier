@@ -869,6 +869,23 @@ h4 {
   grid-column: 1 / -1;
 }
 
+.custom-payment-split {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: oklch(0.13 0.01 250 / 0.52);
+  padding: 16px;
+}
+
+.custom-payment-split legend {
+  padding: 0 6px;
+  color: var(--gold);
+}
+
+.custom-payment-split .form-grid {
+  margin-top: 0;
+  gap: 12px;
+}
+
 .field input,
 .field textarea,
 .field select {

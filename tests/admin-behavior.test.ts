@@ -10,6 +10,7 @@ import {
   isAdminRequestAllowed,
 } from "@/lib/admin-auth";
 import {
+  buildCustomPaymentSplitSteps,
   checkoutAgreementPhases,
   lightweightAgreementDocumentTypes,
   normalizeClientInput,
@@ -138,6 +139,32 @@ function expectsLightweightAgreementContract() {
   }
 }
 
+function expectsCustomPaymentSplitContract() {
+  const steps = buildCustomPaymentSplitSteps({
+    totalAmountCents: 1000000,
+    initialPaymentCents: 250000,
+    remainingPaymentCents: null,
+    remainingTriggerPhase: "final_invoice_ready",
+    monthlyRetainerCents: 150000,
+  });
+
+  if (steps.length !== 3) {
+    throw new Error("Custom payment split should include initial, remaining, and optional retainer steps.");
+  }
+
+  if (steps[0]?.label !== "Initial payment" || steps[0]?.amountCents !== 250000 || steps[0]?.triggerPhase !== "deposit_invoice_ready") {
+    throw new Error("Custom payment split should bill the configured initial payment at deposit invoice phase.");
+  }
+
+  if (steps[1]?.label !== "Remaining payment" || steps[1]?.amountCents !== 750000 || steps[1]?.triggerPhase !== "final_invoice_ready") {
+    throw new Error("Custom payment split should default the remaining project balance when no remaining amount is entered.");
+  }
+
+  if (steps[2]?.label !== "Monthly retainer" || steps[2]?.amountCents !== 150000 || steps[2]?.triggerPhase !== "build_active") {
+    throw new Error("Custom payment split should append the optional monthly retainer at build kickoff.");
+  }
+}
+
 function expectsMutationPayloadContract() {
   const payload = buildMutationPayload("expenses", new Map<string, FormDataEntryValue | FormDataEntryValue[]>([
     ["business_purpose", "Production hosting"],
@@ -261,6 +288,7 @@ void expectsSectionRowsContract;
 void expectsCsvContract;
 void expectsAdminFormDefinitions;
 expectsLightweightAgreementContract();
+expectsCustomPaymentSplitContract();
 void expectsMutationPayloadContract;
 expectsAdminUrlAndApiAuthContracts();
 expectsAdminSessionCookieContract();

@@ -140,8 +140,36 @@ export default async function AdminProjectsPage({
                     {pattern.name}
                   </option>
                 ))}
+                <option value="custom">Custom payment split</option>
               </select>
             </label>
+            <fieldset className="field full custom-payment-split">
+              <legend>Custom payment split</legend>
+              <div className="form-grid">
+                <label className="field">
+                  Paid initially
+                  <input name="custom_initial_payment" type="number" step="0.01" min="0" placeholder="2500" />
+                </label>
+                <label className="field">
+                  Remaining payment
+                  <input name="custom_remaining_payment" type="number" step="0.01" min="0" placeholder="Auto balance" />
+                </label>
+                <label className="field">
+                  Remaining due
+                  <select name="custom_remaining_phase" defaultValue="final_invoice_ready">
+                    {projectPhaseOrder.map((phase) => (
+                      <option key={phase} value={phase}>
+                        {projectPhaseLabel(phase)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  Monthly retainer
+                  <input name="custom_monthly_retainer" type="number" step="0.01" min="0" placeholder="0" />
+                </label>
+              </div>
+            </fieldset>
             <label className="field full">
               Checkout agreement scope
               <textarea name="scope_summary" placeholder="Website launch, core pages, Stripe payment, and handoff support." />

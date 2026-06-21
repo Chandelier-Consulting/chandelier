@@ -153,6 +153,51 @@ export const defaultBillingPatterns: BillingPattern[] = [
   },
 ];
 
+export function buildCustomPaymentSplitSteps(input: {
+  totalAmountCents: number;
+  initialPaymentCents: number;
+  remainingPaymentCents?: number | null;
+  remainingTriggerPhase?: string | null;
+  monthlyRetainerCents?: number | null;
+}) {
+  const totalAmountCents = Math.max(0, Math.round(input.totalAmountCents));
+  const initialPaymentCents = Math.max(0, Math.round(input.initialPaymentCents));
+  const explicitRemaining = input.remainingPaymentCents == null ? null : Math.max(0, Math.round(input.remainingPaymentCents));
+  const remainingPaymentCents = explicitRemaining ?? Math.max(0, totalAmountCents - initialPaymentCents);
+  const monthlyRetainerCents = Math.max(0, Math.round(input.monthlyRetainerCents ?? 0));
+  const remainingTriggerPhase = isProjectPhase(input.remainingTriggerPhase || "")
+    ? (input.remainingTriggerPhase as ProjectPhase)
+    : "final_invoice_ready";
+
+  return [
+    {
+      label: "Initial payment",
+      triggerPhase: "deposit_invoice_ready" as ProjectPhase,
+      amountCents: initialPaymentCents,
+      percentage: null,
+    },
+    {
+      label: "Remaining payment",
+      triggerPhase: remainingTriggerPhase,
+      amountCents: remainingPaymentCents,
+      percentage: null,
+    },
+    monthlyRetainerCents > 0
+      ? {
+          label: "Monthly retainer",
+          triggerPhase: "build_active" as ProjectPhase,
+          amountCents: monthlyRetainerCents,
+          percentage: null,
+        }
+      : null,
+  ].filter((step): step is {
+    label: string;
+    triggerPhase: ProjectPhase;
+    amountCents: number;
+    percentage: null;
+  } => step !== null && step.amountCents > 0);
+}
+
 export function formatCents(value: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

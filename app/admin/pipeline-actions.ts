@@ -26,6 +26,7 @@ import {
   revokeSigningSession,
 } from "@/lib/admin-documents";
 import {
+  buildCustomPaymentSplitSteps,
   isProjectPhase,
   projectPhaseLabel,
   type DocumentType,
@@ -195,7 +196,16 @@ export async function createProject(formData: FormData) {
     redirectWithError("/admin/projects", "Please select a billing pattern.");
   }
 
-  const customSteps = parseCustomSteps(value(formData, "custom_steps"));
+  const customSplitSteps = buildCustomPaymentSplitSteps({
+    totalAmountCents,
+    initialPaymentCents: toCents(value(formData, "custom_initial_payment"), 0),
+    remainingPaymentCents: value(formData, "custom_remaining_payment")
+      ? toCents(value(formData, "custom_remaining_payment"), 0)
+      : null,
+    remainingTriggerPhase: value(formData, "custom_remaining_phase"),
+    monthlyRetainerCents: toCents(value(formData, "custom_monthly_retainer"), 0),
+  });
+  const customSteps = customSplitSteps.length > 0 ? customSplitSteps : parseCustomSteps(value(formData, "custom_steps"));
   const deliverables = value(formData, "deliverables")
     .split(/\r?\n/)
     .map((entry) => entry.trim())
