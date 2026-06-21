@@ -10,6 +10,12 @@ import {
   isAdminRequestAllowed,
 } from "@/lib/admin-auth";
 import {
+  checkoutAgreementPhases,
+  lightweightAgreementDocumentTypes,
+  normalizeClientInput,
+  normalizeProjectInput,
+} from "@/lib/admin-pipeline";
+import {
   adminFormDefinitions,
   buildDashboardSummary,
   buildMutationPayload,
@@ -100,6 +106,36 @@ function expectsAdminFormDefinitions() {
     | string
     | undefined;
   adminFormDefinitions.payouts?.table satisfies string | undefined;
+}
+
+function expectsLightweightAgreementContract() {
+  const client = normalizeClientInput({
+    restaurantName: "Rivera Bakery",
+  });
+
+  if (client.legalName !== "Rivera Bakery" || client.displayName !== "Rivera Bakery" || client.name !== "Rivera Bakery") {
+    throw new Error("Client setup should only require the restaurant name.");
+  }
+
+  const project = normalizeProjectInput({
+    clientId: "client-1",
+    restaurantName: "Rivera Bakery",
+    totalAmountCents: 750000,
+    scopeSummary: "New website and managed launch support.",
+  });
+
+  if (project.name !== "Rivera Bakery launch" || project.phase !== "checkout_agreement" || project.billingPatternId !== "50-50") {
+    throw new Error("Project setup should default to a lightweight checkout agreement.");
+  }
+
+  const checkoutPhases = checkoutAgreementPhases as readonly string[];
+  if (!checkoutPhases.includes("checkout_agreement") || checkoutPhases.includes("msa_issued")) {
+    throw new Error("Checkout agreement phases should replace separate MSA/SOW gates.");
+  }
+
+  if (lightweightAgreementDocumentTypes.length !== 1 || lightweightAgreementDocumentTypes[0] !== "checkout_agreement") {
+    throw new Error("Only the lightweight checkout agreement should be prepared by default.");
+  }
 }
 
 function expectsMutationPayloadContract() {
@@ -224,6 +260,7 @@ void expectsSupabaseDashboardContract;
 void expectsSectionRowsContract;
 void expectsCsvContract;
 void expectsAdminFormDefinitions;
+expectsLightweightAgreementContract();
 void expectsMutationPayloadContract;
 expectsAdminUrlAndApiAuthContracts();
 expectsAdminSessionCookieContract();

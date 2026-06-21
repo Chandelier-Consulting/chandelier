@@ -64,7 +64,7 @@ export default async function AdminProjectsPage({
             <p>Project pipeline</p>
             <h1>Projects</h1>
           </div>
-          <span>Build and manage projects through phases, documents, and billing milestones.</span>
+          <span>Prepare a lightweight checkout agreement, collect payment, then move into build work.</span>
         </header>
         <p className="admin-notice">Supabase is not configured: {missing.join(", ")}</p>
       </section>
@@ -102,7 +102,7 @@ export default async function AdminProjectsPage({
           <p>Project pipeline</p>
           <h1>Projects</h1>
         </div>
-        <span>Build and manage projects through phases, documents, and billing milestones.</span>
+        <span>Prepare a lightweight checkout agreement, collect payment, then move into build work.</span>
       </header>
 
       {error ? <p className="admin-notice">{error}</p> : null}
@@ -119,7 +119,7 @@ export default async function AdminProjectsPage({
                 <option value="">Select client</option>
                 {clients.map((entry) => (
                   <option key={entry.id} value={entry.id}>
-                    {entry.legal_name || entry.display_name || entry.name || "Unnamed client"}
+                    {entry.display_name || entry.name || entry.legal_name || "Unnamed client"}
                   </option>
                 ))}
               </select>
@@ -133,60 +133,29 @@ export default async function AdminProjectsPage({
               <input name="total_amount" type="number" step="0.01" min="0" required />
             </label>
             <label className="field">
-              Currency
-              <input name="currency" defaultValue="USD" />
-            </label>
-            <label className="field">
-              Status
-              <input name="status" defaultValue="active" />
-            </label>
-            <label className="field">
-              Phase start
-              <select name="phase">
-                {projectPhaseOrder.map((phaseId) => (
-                  <option key={phaseId} value={phaseId}>
-                    {projectPhaseLabel(phaseId)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              Billing pattern
+              Payment split
               <select name="billing_pattern_id" required>
                 {patterns.map((pattern) => (
                   <option key={pattern.id} value={pattern.id}>
                     {pattern.name}
                   </option>
                 ))}
-                <option value="custom">Custom</option>
               </select>
             </label>
             <label className="field full">
-              Scope summary
-              <textarea name="scope_summary" />
+              Checkout agreement scope
+              <textarea name="scope_summary" placeholder="Website launch, core pages, Stripe payment, and handoff support." />
             </label>
             <label className="field full">
-              Deliverables (one per line)
-              <textarea name="deliverables" />
+              What is included
+              <textarea name="deliverables" placeholder="Home page&#10;Menu page&#10;Contact form&#10;Launch support" />
             </label>
-            <label className="field">
-              Start date
-              <input name="start_date" type="date" />
-            </label>
-            <label className="field">
-              Target end date
-              <input name="target_end_date" type="date" />
-            </label>
-            <label className="field full">
-              Custom billing steps (optional)
-              <span style={{ color: "var(--muted)" }}>
-                Label | phase_slug | percentage | amount_cents
-              </span>
-              <textarea name="custom_steps" />
-            </label>
+            <input name="currency" type="hidden" value="USD" />
+            <input name="status" type="hidden" value="active" />
+            <input name="phase" type="hidden" value="checkout_agreement" />
           </div>
           <button className="btn" type="submit">
-            Create project
+            Prepare agreement
           </button>
         </form>
 
@@ -259,7 +228,8 @@ export default async function AdminProjectsPage({
             </article>
           ) : null}
           {filtered.map((project) => {
-            const clientName = clientsById.get(project.client_id || "")?.legal_name || "Unassigned";
+            const projectClient = clientsById.get(project.client_id || "");
+            const clientName = projectClient?.display_name || projectClient?.name || projectClient?.legal_name || "Unassigned";
             const projectNextPhase = nextPhase(project.phase);
             return (
               <article className="admin-project-card" key={project.id}>

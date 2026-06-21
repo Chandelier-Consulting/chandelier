@@ -4,7 +4,8 @@ import {
   defaultBillingPatterns,
   isProjectPhase,
   nextProjectPhase,
-  normalizeDeliverables,
+  normalizeClientInput,
+  normalizeProjectInput,
   projectPhaseOrder,
   projectPhaseLabel,
   type BillingPattern,
@@ -18,14 +19,15 @@ import {
 type DbPayload = Record<string, unknown>;
 
 export type ClientInput = {
-  legalName: string;
-  displayName: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  billingEmail: string;
-  companyWebsite: string;
-  address: string;
+  restaurantName?: string;
+  legalName?: string;
+  displayName?: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  billingEmail?: string;
+  companyWebsite?: string;
+  address?: string;
 };
 
 export type BillingPatternStepInput = {
@@ -200,36 +202,35 @@ function safeSelectOne<T>(result: { data: T | null; error: { message: string } |
 }
 
 function toClientPayload(input: ClientInput): Record<string, unknown> {
-  const legalName = textValue(input.legalName);
-  const displayName = textValue(input.displayName) || legalName || "Client";
+  const normalized = normalizeClientInput(input);
   return {
-    legal_name: legalName || displayName,
-    display_name: displayName,
-    name: displayName,
-    contact_name: textValue(input.contactName) || null,
-    email: textValue(input.email) || null,
-    phone: textValue(input.phone) || null,
-    billing_email: textValue(input.billingEmail) || textValue(input.email) || null,
-    company_website: textValue(input.companyWebsite) || null,
-    address: textValue(input.address) || null,
+    legal_name: normalized.legalName,
+    display_name: normalized.displayName,
+    name: normalized.name,
+    contact_name: normalized.contactName || null,
+    email: normalized.email || null,
+    phone: normalized.phone || null,
+    billing_email: normalized.billingEmail || null,
+    company_website: normalized.companyWebsite || null,
+    address: normalized.address || null,
   };
 }
 
 function toProjectPayload(input: ProjectInput) {
-  const rawAmount = Number.isFinite(input.totalAmountCents) ? Math.round(input.totalAmountCents) : 0;
+  const normalized = normalizeProjectInput(input);
 
   return {
-    client_id: input.clientId || null,
-    name: textValue(input.name) || "Project",
-    status: textValue(input.status) || "active",
-    phase: asProjectPhase(input.phase),
-    total_amount_cents: Math.max(0, rawAmount),
-    currency: textValue(input.currency) || "USD",
-    billing_pattern_id: textValue(input.billingPatternId) || null,
-    scope_summary: textValue(input.scopeSummary) || null,
-    deliverables: normalizeDeliverables(input.deliverables),
-    start_date: textValue(input.startDate) || null,
-    target_end_date: textValue(input.targetEndDate) || null,
+    client_id: normalized.clientId || null,
+    name: normalized.name,
+    status: normalized.status,
+    phase: normalized.phase,
+    total_amount_cents: normalized.totalAmountCents,
+    currency: normalized.currency,
+    billing_pattern_id: normalized.billingPatternId || null,
+    scope_summary: normalized.scopeSummary || null,
+    deliverables: normalized.deliverables,
+    start_date: normalized.startDate || null,
+    target_end_date: normalized.targetEndDate || null,
   };
 }
 
@@ -422,16 +423,7 @@ export async function updateClient(
   clientId: string,
   input: Partial<ClientInput>,
 ) {
-  const payload = toClientPayload({
-    legalName: textValue(input.legalName),
-    displayName: textValue(input.displayName),
-    contactName: textValue(input.contactName),
-    email: textValue(input.email),
-    phone: textValue(input.phone),
-    billingEmail: textValue(input.billingEmail),
-    companyWebsite: textValue(input.companyWebsite),
-    address: textValue(input.address),
-  });
+  const payload = toClientPayload(input);
 
   const updated = await client.from("clients").update(payload).eq("id", clientId);
   if (updated.error) safeQueryError(updated.error.message);

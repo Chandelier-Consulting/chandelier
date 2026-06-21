@@ -142,7 +142,7 @@ export default async function SigningPage({
             </div>
             <div>
               <dt>Client</dt>
-              <dd>{field(projectClient?.legal_name || projectClient?.display_name || projectClient?.name, "Unknown client")}</dd>
+              <dd>{field(projectClient?.display_name || projectClient?.name || projectClient?.legal_name, "Unknown client")}</dd>
             </div>
             <div>
               <dt>Document</dt>
@@ -180,19 +180,19 @@ export default async function SigningPage({
 
         <article className="admin-form-card">
           <h2>Sign agreement</h2>
-          <p style={{ color: "var(--muted)" }}>By typing your full legal name and checking the consent box, you consent to electronic records and signatures.</p>
+          <p style={{ color: "var(--muted)" }}>By typing your name and checking the consent box, you consent to electronic records and signatures.</p>
           <form action={submitSigningAction} className="admin-record-form">
             <input type="hidden" name="session_id" value={sessionId} />
             <input type="hidden" name="token" value={token} />
 
             <div className="admin-details" style={{ marginBottom: 12, gridTemplateColumns: "1fr" }}>
               <label className="field">
-                Full legal name
+                Name
                 <input
                   name="signer_name"
                   required
                   autoComplete="name"
-                  placeholder="Type your full legal name"
+                  placeholder="Type your name"
                   defaultValue={session.signer_name || ""}
                 />
               </label>

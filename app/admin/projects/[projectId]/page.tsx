@@ -14,6 +14,7 @@ import {
 } from "@/app/admin/pipeline-actions";
 import {
   documentTypeLabel,
+  lightweightAgreementDocumentTypes,
   projectPhaseLabel,
   phaseRows,
   projectPhaseOrder,
@@ -133,7 +134,7 @@ export default async function ProjectWorkspacePage({
 
   const project = workspace.project;
   const documentsByType: DocumentWorkspaceRow[] = [];
-  const allDocumentTypes: DocumentType[] = ["msa", "sow", "agency_procedures", "design_system"];
+  const allDocumentTypes: DocumentType[] = [...lightweightAgreementDocumentTypes];
 
   for (const type of allDocumentTypes) {
     const document = workspace.documents.find((entry) => entry.type === type) ?? null;
@@ -166,7 +167,7 @@ export default async function ProjectWorkspacePage({
           <h1>{project.name}</h1>
         </div>
         <span>
-          {workspace.client?.name || "Unassigned client"} · {projectPhaseLabel(project.phase)}
+          {workspace.client?.display_name || workspace.client?.name || "Unassigned client"} · {projectPhaseLabel(project.phase)}
         </span>
       </header>
 
@@ -419,7 +420,7 @@ export default async function ProjectWorkspacePage({
                       <form action={markSignedManuallyAction} className="admin-inline-actions" style={{ marginTop: 10 }}>
                         <input name="project_id" type="hidden" value={project.id} />
                         <input name="document_id" type="hidden" value={entry.document.id} />
-                        <input name="signer_name" placeholder="Signer full legal name" type="text" />
+                        <input name="signer_name" placeholder="Signer name" type="text" />
                         <input
                           name="signer_email"
                           placeholder="Signer email"
@@ -439,8 +440,8 @@ export default async function ProjectWorkspacePage({
                           <input name="document_id" type="hidden" value={entry.document.id} />
                           <input
                             name="signer_name"
-                            placeholder="Signer full legal name"
-                            defaultValue={workspace.client?.legal_name || workspace.client?.display_name || workspace.client?.name || ""}
+                            placeholder="Signer name"
+                            defaultValue={workspace.client?.contact_name || workspace.client?.display_name || workspace.client?.name || ""}
                           />
                           <input
                             name="signer_email"
