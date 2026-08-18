@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside>
         <Link className="admin-brand" href="/admin/dashboard">
           Chandelier OS
-          <span>Perceo Inc.</span>
+          <span>Chandelier Consulting</span>
         </Link>
         <AdminNav />
       </aside>

@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   applicationName: "Chandelier Consulting",
   authors: [{ name: "Chandelier Consulting" }],
   creator: "Chandelier Consulting",
-  publisher: "Perceo Inc.",
+  publisher: "Chandelier Consulting",
   alternates: {
     canonical: "/",
   },
