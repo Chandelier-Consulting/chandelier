@@ -850,7 +850,7 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© 2026 Chandelier Consulting is operated by Perceo Inc.</span>
+            <span>© 2026 Chandelier Consulting</span>
             <span>Designed to make local business shine.</span>
           </div>
         </div>
