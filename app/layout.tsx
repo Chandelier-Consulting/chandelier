@@ -21,11 +21,10 @@ const monoFont = Space_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://chandelierconsulting.dev"),
   title: {
-    default: "Chandelier Consulting | Websites, Automations, and Digital Systems",
+    default: "Chandelier Consulting",
     template: "%s | Chandelier Consulting",
   },
-  description:
-    "Websites, automations, and digital systems for growing businesses.",
+  description: "Chandelier Consulting",
   applicationName: "Chandelier Consulting",
   authors: [{ name: "Chandelier Consulting" }],
   creator: "Chandelier Consulting",
@@ -34,9 +33,8 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Chandelier Consulting | Websites, Automations, and Digital Systems",
-    description:
-      "Websites, automations, and digital systems for growing businesses.",
+    title: "Chandelier Consulting",
+    description: "Chandelier Consulting",
     url: "/",
     siteName: "Chandelier Consulting",
     locale: "en_US",
@@ -44,9 +42,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Chandelier Consulting | Websites, Automations, and Digital Systems",
-    description:
-      "Websites, automations, and digital systems for growing businesses.",
+    title: "Chandelier Consulting",
+    description: "Chandelier Consulting",
   },
 };
 
